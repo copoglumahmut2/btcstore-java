@@ -1,6 +1,6 @@
 package com.btc.security.constant;
 
-import com.btc.service.constant.ServiceConstant;
+import com.btc_store.service.constant.ServiceConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import util.StoreClassUtils;

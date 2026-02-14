@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.btc</groupId>
-        <artifactId>btcstore</artifactId>
+        <artifactId>btc_store</artifactId>
+        <groupId>com.btc.store</groupId>
         <version>1.0.0</version>
     </parent>
 
@@ -19,13 +19,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.btc</groupId>
+            <groupId>com.btc.store</groupId>
             <artifactId>base</artifactId>
             <version>${btcstore.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.btc</groupId>
+            <groupId>com.btc.store</groupId>
             <artifactId>persistence</artifactId>
             <version>${btcstore.version}</version>
             <scope>compile</scope>

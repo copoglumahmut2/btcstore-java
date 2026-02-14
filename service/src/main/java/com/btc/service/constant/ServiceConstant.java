@@ -1,9 +1,0 @@
-package com.btc.service.constant;
-
-public interface ServiceConstant {
-    String HYPHEN = "-";
-    String UNDERSCORE = "_";
-
-    String SUPER_ADMIN = "super_admin";
-    String SITE_BACKOFFICE_URL = "site.backoffice.url";
-}
