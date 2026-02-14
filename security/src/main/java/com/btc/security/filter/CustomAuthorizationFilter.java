@@ -19,10 +19,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,8 +68,6 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 jwtUserData.setJwtId(decodedJWT.getId());
 
                 jwtUserData.setSite(siteModel);
-                jwtUserData.setAsm(BooleanUtils.toBoolean(decodedJWT.getClaim("asm").asBoolean()));
-                jwtUserData.setAsmUsername(decodedJWT.getClaim("asmUsername").asString());
                 token.setDetails(jwtUserData);
                 SecurityContextHolder.getContext().setAuthentication(token);
                 filterChain.doFilter(httpServletRequest, httpServletResponse);
@@ -83,20 +81,28 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 new ObjectMapper().writeValue(httpServletResponse.getOutputStream(), error);
             }
         } else {
-            httpServletResponse.setContentType(APPLICATION_JSON_VALUE);
-            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            httpServletResponse.setHeader(AuthConstants.ERROR, "No token is provided");
-
-            var error = new ErrorObject("No token is provided", HttpServletResponse.SC_UNAUTHORIZED);
-            new ObjectMapper().writeValue(httpServletResponse.getOutputStream(), error);
+            // Token yoksa da filtreyi geçir, SecurityFilterChain zaten yetkisiz istekleri engelleyecek
             filterChain.doFilter(httpServletRequest, httpServletResponse);
         }
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest httpServletRequest) throws ServletException {
-        return httpServletRequest.getServletPath().contains("/login") ||
-                Arrays.asList(SecurityConfig.excludingSwaggerPaths).contains(httpServletRequest.getServletPath())
-                || (StringUtils.isNotEmpty(httpServletRequest.getServletPath()));
+        String path = httpServletRequest.getServletPath();
+        
+        // Login path'i filtreden geçirme
+        if (path.contains("/login")) {
+            return true;
+        }
+        
+        // Swagger path'lerini kontrol et
+        for (String excludedPath : SecurityConfig.excludingSwaggerPaths) {
+            String pattern = excludedPath.replace("/**", "").replace("/*", "");
+            if (path.startsWith(pattern) || path.contains(pattern)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

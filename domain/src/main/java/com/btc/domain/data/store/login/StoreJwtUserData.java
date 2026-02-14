@@ -12,6 +12,4 @@ public class StoreJwtUserData {
 
     private String jwtId;
     private SiteModel site;
-    private boolean asm;
-    private String asmUsername;
 }

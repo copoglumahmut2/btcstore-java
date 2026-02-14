@@ -3,28 +3,21 @@ package com.btc.security.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.btc.domain.data.custom.login.LoginRequest;
-import com.btc.domain.enums.LoginAuthenticationType;
+import com.btc.domain.data.custom.restservice.ServiceResponseData;
 import com.btc.domain.enums.LoginResultType;
 import com.btc.domain.enums.ProcessStatus;
-import com.btc.domain.enums.User2FaType;
-import com.btc.domain.enums.app.Platform;
 import com.btc.domain.model.custom.SiteModel;
 import com.btc.domain.model.custom.UserAuditModel;
-import com.btc.domain.model.custom.user.User2FaModel;
 import com.btc.domain.model.custom.user.UserGroupModel;
 import com.btc.domain.model.custom.user.UserModel;
 import com.btc.security.domain.AuthToken;
-import com.btc.security.provider.LdapAuthenticationProvider;
 import com.btc.service.MediaService;
 import com.btc.service.ModelService;
 import com.btc.service.ParameterService;
 import com.btc.service.SiteService;
 import com.btc.service.constant.ServiceConstant;
-import com.btc.service.exception.BambooRuntimeException;
 import com.btc.service.exception.StoreRuntimeException;
 import com.btc.service.exception.user.UserLockedException;
-import com.btc.service.exception.user.UserMFAException;
-import com.btc.service.user.User2FaService;
 import com.btc.service.user.UserService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,20 +35,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import util.BambooWebUtils;
 import util.StoreWebUtils;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
@@ -105,14 +96,11 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             loginRequest.setSite(siteModel);
         }
 
-        var asmParam = StoreWebUtils.getCurrentHttpRequest().getParameter("asm");
-
         setBackOffice(request, loginRequest);
         request.setAttribute(LOGIN_REQUEST, loginRequest);
         var authentication = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
         setDetails(request, authentication);
 
-        var currentUser = userService.getUserModelForBack(loginRequest.getUsername(), siteModel);
         Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
         return authenticationResponse;
     }
