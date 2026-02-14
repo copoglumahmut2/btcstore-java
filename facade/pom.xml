@@ -30,6 +30,12 @@
             <version>${btcstore.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.btc.store</groupId>
+            <artifactId>security</artifactId>
+            <version>${btcstore.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>
