@@ -19,4 +19,5 @@ public interface DomainConstant {
     String MEDIA_TABLE_NAME = "medias";
     String CMSCATEGORYMODEL_TABLE_NAME = "cmscategories";
     String CMSCATEGORYTYPEMODEL_TABLE_NAME = "cmscategorytypes";
+    String USER_AUDIT_TABLE_NAME = "useraudits";
 }
