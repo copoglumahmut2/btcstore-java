@@ -203,9 +203,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             userAuditModel.setClientInfo(clientInfo);
             modelService.save(userAuditModel);
 
-
-            chain.doFilter(request, response);
-
+            // Login başarılı, token'ı döndür ve filter chain'e devam etme
             new ObjectMapper().writeValue(response.getOutputStream(), authToken);
         }
     }
