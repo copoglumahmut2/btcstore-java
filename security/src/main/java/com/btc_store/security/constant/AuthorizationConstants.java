@@ -1,4 +1,4 @@
-package com.btc.security.constant;
+package com.btc_store.security.constant;
 
 import com.btc_store.service.constant.ServiceConstant;
 import org.apache.commons.lang3.StringUtils;

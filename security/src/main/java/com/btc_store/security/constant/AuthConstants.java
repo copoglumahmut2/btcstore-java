@@ -1,4 +1,4 @@
-package com.btc.security.constant;
+package com.btc_store.security.constant;
 
 public interface AuthConstants {
 

@@ -1,4 +1,4 @@
-package com.btc.security.filter;
+package com.btc_store.security.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -10,7 +10,7 @@ import com.btc_store.domain.model.custom.SiteModel;
 import com.btc_store.domain.model.custom.UserAuditModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
-import com.btc.security.domain.AuthToken;
+import com.btc_store.security.domain.AuthToken;
 import com.btc_store.service.MediaService;
 import com.btc_store.service.ModelService;
 import com.btc_store.service.ParameterService;
@@ -39,6 +39,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import util.StoreWebUtils;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -92,12 +93,17 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             loginRequest.setSite(siteModel);
         }
 
+        var asmParam = StoreWebUtils.getCurrentHttpRequest().getParameter("asm");
+
+
         setBackOffice(request, loginRequest);
         request.setAttribute(LOGIN_REQUEST, loginRequest);
         var authentication = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
         setDetails(request, authentication);
 
-        Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
+        Authentication authenticationResponse = authenticationManager.authenticate(authentication);
+
+
         return authenticationResponse;
     }
 
@@ -110,7 +116,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request,
-                                            HttpServletResponse response,
+                                           HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
         // provide JWT token
@@ -167,6 +173,8 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
             var userGroups = Optional.ofNullable(userModel.getUserGroups()).orElse(new HashSet<>());
 
+
+
             var authToken = AuthToken.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
@@ -182,7 +190,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
             request.setAttribute("authToken", authToken);
 
-            var loginRequest = (LoginRequest) request.getAttribute("loginRequest");
 
             var userAuditModel = modelService.create(UserAuditModel.class);
             userAuditModel.setCode(UUID.randomUUID().toString());
@@ -202,6 +209,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             new ObjectMapper().writeValue(response.getOutputStream(), authToken);
         }
     }
+
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,

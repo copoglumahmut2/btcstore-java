@@ -34,11 +34,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         .allowedHeaders("*")
                         .allowCredentials(true)
                         .allowedOrigins(Arrays.asList(corsOriginUrls).stream().map(StringUtils::trim).toArray(String[]::new));
-
-
             }
         };
-
-
     }
 }

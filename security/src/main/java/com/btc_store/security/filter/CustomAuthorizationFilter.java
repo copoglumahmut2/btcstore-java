@@ -1,11 +1,11 @@
-package com.btc.security.filter;
+package com.btc_store.security.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.btc_store.domain.data.custom.login.JwtUserData;
-import com.btc.security.configuration.SecurityConfig;
-import com.btc.security.constant.AuthConstants;
-import com.btc.security.domain.ErrorObject;
+import com.btc_store.security.configuration.SecurityConfig;
+import com.btc_store.security.constant.AuthConstants;
+import com.btc_store.security.domain.ErrorObject;
 import com.btc_store.service.SiteService;
 import com.btc_store.service.user.UserGroupService;
 import com.fasterxml.jackson.databind.ObjectMapper;

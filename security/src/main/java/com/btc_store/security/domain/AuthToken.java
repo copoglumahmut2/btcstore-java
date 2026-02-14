@@ -1,4 +1,4 @@
-package com.btc.security.domain;
+package com.btc_store.security.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
