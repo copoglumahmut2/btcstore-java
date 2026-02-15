@@ -68,10 +68,13 @@ public class BannerController {
                                           @Validated @RequestPart(value = "bannerData") BannerData bannerData,
                                           @Parameter(description = "Banner media file") 
                                           @RequestPart(value = "media", required = false) MultipartFile mediaFile,
+                                          @Parameter(description = "Remove existing media") 
+                                          @RequestPart(value = "removeMedia", required = false) String removeMedia,
                                           @Parameter(description = "IsoCode for validation message internalization") 
                                           @RequestParam(required = false) String isoCode) {
         log.info("Inside saveBanner of BannerController.");
-        var savedBanner = bannerFacade.saveBanner(bannerData, mediaFile);
+        boolean shouldRemoveMedia = "true".equals(removeMedia);
+        var savedBanner = bannerFacade.saveBanner(bannerData, mediaFile, shouldRemoveMedia);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedBanner);

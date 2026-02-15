@@ -1,12 +1,12 @@
 package com.btc_store.facade.impl;
 
-import com.btc_store.domain.data.custom.BannerData;
+import com.btc_store.domain.data.custom.CategoryData;
 import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
-import com.btc_store.domain.model.custom.BannerModel;
+import com.btc_store.domain.model.custom.CategoryModel;
 import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
-import com.btc_store.facade.BannerFacade;
+import com.btc_store.facade.CategoryFacade;
 import com.btc_store.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +22,9 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class BannerFacadeImpl implements BannerFacade {
+public class CategoryFacadeImpl implements CategoryFacade {
 
-    private final BannerService bannerService;
+    private final CategoryService categoryService;
     private final SiteService siteService;
     private final ModelMapper modelMapper;
     private final ModelService modelService;
@@ -33,52 +33,52 @@ public class BannerFacadeImpl implements BannerFacade {
     private final CmsCategoryService cmsCategoryService;
 
     @Override
-    public List<BannerData> getAllBanners() {
+    public List<CategoryData> getAllCategories() {
         var siteModel = siteService.getCurrentSite();
-        var bannerModels = searchService.search(BannerModel.class,
+        var categoryModels = searchService.search(CategoryModel.class,
                 Map.of(StoreSiteBasedItemModel.Fields.site, siteModel),
                 SearchOperator.AND);
-        return List.of(modelMapper.map(bannerModels, BannerData[].class));
+        return List.of(modelMapper.map(categoryModels, CategoryData[].class));
     }
 
     @Override
-    public List<BannerData> getActiveBanners() {
+    public List<CategoryData> getActiveCategories() {
         var siteModel = siteService.getCurrentSite();
-        var bannerModels = searchService.search(BannerModel.class,
+        var categoryModels = searchService.search(CategoryModel.class,
                 Map.of(StoreSiteBasedItemModel.Fields.site, siteModel,
                        "active", true),
                 SearchOperator.AND);
-        return List.of(modelMapper.map(bannerModels, BannerData[].class));
+        return List.of(modelMapper.map(categoryModels, CategoryData[].class));
     }
 
     @Override
-    public BannerData getBannerByCode(String code) {
+    public CategoryData getCategoryByCode(String code) {
         var siteModel = siteService.getCurrentSite();
-        var bannerModel = searchService.searchByCodeAndSite(BannerModel.class, code, siteModel);
-        return modelMapper.map(bannerModel, BannerData.class);
+        var categoryModel = searchService.searchByCodeAndSite(CategoryModel.class, code, siteModel);
+        return modelMapper.map(categoryModel, CategoryData.class);
     }
 
     @Override
-    public BannerData saveBanner(BannerData bannerData, MultipartFile mediaFile, boolean removeMedia) {
+    public CategoryData saveCategory(CategoryData categoryData, MultipartFile mediaFile, boolean removeMedia) {
         var siteModel = siteService.getCurrentSite();
-        BannerModel bannerModel;
+        CategoryModel categoryModel;
         MediaModel oldMedia = null;
 
-        if (bannerData.isNew()) {
-            bannerModel = modelMapper.map(bannerData, BannerModel.class);
-            bannerModel.setCode(UUID.randomUUID().toString());
-            bannerModel.setSite(siteModel);
+        if (categoryData.isNew()) {
+            categoryModel = modelMapper.map(categoryData, CategoryModel.class);
+            categoryModel.setCode(UUID.randomUUID().toString());
+            categoryModel.setSite(siteModel);
         } else {
-            bannerModel = searchService.searchByCodeAndSite(BannerModel.class, bannerData.getCode(), siteModel);
-            oldMedia = bannerModel.getMedia();
+            categoryModel = searchService.searchByCodeAndSite(CategoryModel.class, categoryData.getCode(), siteModel);
+            oldMedia = categoryModel.getMedia();
             
             // Store the old media reference before mapping
-            MediaModel mediaToKeep = bannerModel.getMedia();
-            modelMapper.map(bannerData, bannerModel);
+            MediaModel mediaToKeep = categoryModel.getMedia();
+            modelMapper.map(categoryData, categoryModel);
             
             // If no new media file is provided and not removing, keep the existing media
             if ((Objects.isNull(mediaFile) || mediaFile.isEmpty()) && !removeMedia) {
-                bannerModel.setMedia(mediaToKeep);
+                categoryModel.setMedia(mediaToKeep);
             }
         }
 
@@ -86,44 +86,44 @@ public class BannerFacadeImpl implements BannerFacade {
 
         if (hasNewMedia) {
             try {
-                var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.BANNER.getValue(), siteModel);
+                var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.CATEGORY.getValue(), siteModel);
                 var mediaModel = mediaService.storage(mediaFile, false, cmsCategoryModel, siteModel);
-                bannerModel.setMedia(mediaModel);
+                categoryModel.setMedia(mediaModel);
 
                 if (Objects.nonNull(oldMedia)) {
                     mediaService.flagMediaForDelete(oldMedia.getCode(), siteModel);
                 }
             } catch (Exception e) {
-                log.error("Error storing banner media: {}", e.getMessage());
-                throw new RuntimeException("Error storing banner media: " + e.getMessage());
+                log.error("Error storing category media: {}", e.getMessage());
+                throw new RuntimeException("Error storing category media: " + e.getMessage());
             }
         } else if (removeMedia && Objects.nonNull(oldMedia)) {
             // User explicitly wants to remove the media
             try {
                 mediaService.flagMediaForDelete(oldMedia.getCode(), siteModel);
-                bannerModel.setMedia(null);
+                categoryModel.setMedia(null);
             } catch (Exception e) {
-                log.error("Error removing banner media: {}", e.getMessage());
+                log.error("Error removing category media: {}", e.getMessage());
             }
         }
 
-        var savedModel = modelService.save(bannerModel);
-        return modelMapper.map(savedModel, BannerData.class);
+        var savedModel = modelService.save(categoryModel);
+        return modelMapper.map(savedModel, CategoryData.class);
     }
 
     @Override
-    public void deleteBanner(String code) {
+    public void deleteCategory(String code) {
         var siteModel = siteService.getCurrentSite();
-        var bannerModel = searchService.searchByCodeAndSite(BannerModel.class, code, siteModel);
+        var categoryModel = searchService.searchByCodeAndSite(CategoryModel.class, code, siteModel);
 
-        if (Objects.nonNull(bannerModel.getMedia())) {
+        if (Objects.nonNull(categoryModel.getMedia())) {
             try {
-                mediaService.flagMediaForDelete(bannerModel.getMedia().getCode(), siteModel);
+                mediaService.flagMediaForDelete(categoryModel.getMedia().getCode(), siteModel);
             } catch (Exception e) {
-                log.error("Error occurred while flagging banner media for delete: {}", e.getMessage());
+                log.error("Error occurred while flagging category media for delete: {}", e.getMessage());
             }
         }
         
-        modelService.remove(bannerModel);
+        modelService.remove(categoryModel);
     }
 }

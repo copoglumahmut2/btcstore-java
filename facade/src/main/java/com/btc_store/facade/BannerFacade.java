@@ -13,7 +13,7 @@ public interface BannerFacade {
 
     BannerData getBannerByCode(String code);
 
-    BannerData saveBanner(BannerData bannerData, MultipartFile mediaFile);
+    BannerData saveBanner(BannerData bannerData, MultipartFile mediaFile, boolean removeMedia);
 
     void deleteBanner(String code);
 }
