@@ -16,7 +16,7 @@ public class StoreSearchResultData extends BackBaseData {
     private MediaData media;
     private Integer order;
     private Boolean active;
-    private LocalizeData name;
+    private Object name;
     private LocalizeData description;
     private String backgroundColor;
     private String textColor;
@@ -27,4 +27,5 @@ public class StoreSearchResultData extends BackBaseData {
     private Boolean showOnHomepage;
     private String company;
     private String industry;
+    private Boolean showOnHome;
 }
