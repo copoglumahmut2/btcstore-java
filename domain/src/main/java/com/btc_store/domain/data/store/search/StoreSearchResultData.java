@@ -25,5 +25,6 @@ public class StoreSearchResultData extends BackBaseData {
     private String buttonBorderColor;
     private String buttonTextColor;
     private Boolean showOnHomepage;
-
+    private String company;
+    private String industry;
 }

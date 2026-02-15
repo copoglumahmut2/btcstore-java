@@ -7,7 +7,8 @@ import lombok.Getter;
 @Getter
 public enum MediaCategory {
     BANNER("banner_cms"),
-    CATEGORY("category_cms");
+    CATEGORY("category_cms"),
+    SUCCESS_STORY("success_story_cms");
 
     private String value;
 }

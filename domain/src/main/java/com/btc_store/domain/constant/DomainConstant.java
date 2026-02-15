@@ -23,4 +23,5 @@ public interface DomainConstant {
     String DATAINTEGRATIONLOG_TABLE_NAME = "dataintegrationlogs";
     String BANNER_TABLE_NAME = "banners";
     String CATEGORY_TABLE_NAME = "categories";
+    String SUCCESS_STORY_TABLE_NAME = "success_stories";
 }

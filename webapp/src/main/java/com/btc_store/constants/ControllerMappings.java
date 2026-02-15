@@ -8,6 +8,7 @@ public interface ControllerMappings {
     String MEDIAS = "/medias";
     String BANNERS = "/banners";
     String CATEGORIES = "/categories";
+    String SUCCESS_STORIES = "/success-stories";
     String SEARCH = "/search";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";
