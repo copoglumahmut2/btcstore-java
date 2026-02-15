@@ -74,20 +74,28 @@ public class BannerFacadeImpl implements BannerFacade {
             modelMapper.map(bannerData, bannerModel);
         }
 
-        // Media dosyası geldiyse kaydet ve banner'a bağla
-        if (Objects.nonNull(mediaFile) && !mediaFile.isEmpty()) {
+        boolean hasNewMedia = Objects.nonNull(mediaFile) && !mediaFile.isEmpty();
+        boolean shouldRemoveMedia = Objects.isNull(mediaFile) && Objects.nonNull(oldMedia) && !bannerData.isNew();
+
+        if (hasNewMedia) {
             try {
                 var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.BANNER.getValue(), siteModel);
                 var mediaModel = mediaService.storage(mediaFile, false, cmsCategoryModel, siteModel);
                 bannerModel.setMedia(mediaModel);
 
-                // Eski media varsa silme işareti koy
                 if (Objects.nonNull(oldMedia)) {
                     mediaService.flagMediaForDelete(oldMedia.getCode(), siteModel);
                 }
             } catch (Exception e) {
-                log.error("Error occurred while storing banner media: {}", e.getMessage());
-                throw new RuntimeException("Error occurred while storing banner media: " + e.getMessage());
+                log.error("Error storing banner media: {}", e.getMessage());
+                throw new RuntimeException("Error storing banner media: " + e.getMessage());
+            }
+        } else if (shouldRemoveMedia) {
+            try {
+                mediaService.flagMediaForDelete(oldMedia.getCode(), siteModel);
+                bannerModel.setMedia(null);
+            } catch (Exception e) {
+                log.error("Error removing banner media: {}", e.getMessage());
             }
         }
 
@@ -99,8 +107,7 @@ public class BannerFacadeImpl implements BannerFacade {
     public void deleteBanner(String code) {
         var siteModel = siteService.getCurrentSite();
         var bannerModel = searchService.searchByCodeAndSite(BannerModel.class, code, siteModel);
-        
-        // Banner silinirken media'yı da silme işareti koy
+
         if (Objects.nonNull(bannerModel.getMedia())) {
             try {
                 mediaService.flagMediaForDelete(bannerModel.getMedia().getCode(), siteModel);

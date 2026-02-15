@@ -175,9 +175,16 @@ public class SearchDaoImpl implements SearchDao {
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         var root = countQuery.from(tableClass);
         countQuery.select(cb.countDistinct(root));
-        var countPredicates = searchFormData.getFilters().stream().map(searchFilter -> generatePredicate(searchFilter, root, cb))
-                .collect(Collectors.toList());
-        countPredicates.add(cb.equal(item.get(StoreSiteBasedItemModel.Fields.site).get(StoreCodeBasedItemModel.Fields.code), siteModel.getCode()));
+        
+        List<Predicate> countPredicates;
+        if (Objects.isNull(searchFormData) || CollectionUtils.isEmpty(searchFormData.getFilters())) {
+            countPredicates = new ArrayList<>();
+        } else {
+            countPredicates = searchFormData.getFilters().stream()
+                    .map(searchFilter -> generatePredicate(searchFilter, root, cb))
+                    .collect(Collectors.toList());
+        }
+        countPredicates.add(cb.equal(root.get(StoreSiteBasedItemModel.Fields.site).get(StoreCodeBasedItemModel.Fields.code), siteModel.getCode()));
         countQuery.where(countPredicates.toArray(Predicate[]::new));
         long count = entityManager.createQuery(countQuery).getSingleResult();
         var result = typedQuery.getResultList().stream().distinct().toList();
