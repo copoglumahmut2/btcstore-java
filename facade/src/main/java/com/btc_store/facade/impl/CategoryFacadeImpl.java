@@ -24,7 +24,6 @@ import java.util.UUID;
 @Slf4j
 public class CategoryFacadeImpl implements CategoryFacade {
 
-    private final CategoryService categoryService;
     private final SiteService siteService;
     private final ModelMapper modelMapper;
     private final ModelService modelService;
@@ -71,12 +70,10 @@ public class CategoryFacadeImpl implements CategoryFacade {
         } else {
             categoryModel = searchService.searchByCodeAndSite(CategoryModel.class, categoryData.getCode(), siteModel);
             oldMedia = categoryModel.getMedia();
-            
-            // Store the old media reference before mapping
+
             MediaModel mediaToKeep = categoryModel.getMedia();
             modelMapper.map(categoryData, categoryModel);
-            
-            // If no new media file is provided and not removing, keep the existing media
+
             if ((Objects.isNull(mediaFile) || mediaFile.isEmpty()) && !removeMedia) {
                 categoryModel.setMedia(mediaToKeep);
             }
@@ -98,7 +95,6 @@ public class CategoryFacadeImpl implements CategoryFacade {
                 throw new RuntimeException("Error storing category media: " + e.getMessage());
             }
         } else if (removeMedia && Objects.nonNull(oldMedia)) {
-            // User explicitly wants to remove the media
             try {
                 mediaService.flagMediaForDelete(oldMedia.getCode(), siteModel);
                 categoryModel.setMedia(null);

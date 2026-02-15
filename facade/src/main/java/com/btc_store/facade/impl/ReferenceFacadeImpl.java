@@ -24,7 +24,6 @@ import java.util.UUID;
 @Slf4j
 public class ReferenceFacadeImpl implements ReferenceFacade {
 
-    private final ReferenceService referenceService;
     private final SiteService siteService;
     private final ModelMapper modelMapper;
     private final ModelService modelService;
@@ -82,12 +81,10 @@ public class ReferenceFacadeImpl implements ReferenceFacade {
         } else {
             referenceModel = searchService.searchByCodeAndSite(ReferenceModel.class, referenceData.getCode(), siteModel);
             oldMedia = referenceModel.getMedia();
-            
-            // Store the old media reference before mapping
+
             MediaModel mediaToKeep = referenceModel.getMedia();
             modelMapper.map(referenceData, referenceModel);
-            
-            // If no new media file is provided and not removing, keep the existing media
+
             if ((Objects.isNull(mediaFile) || mediaFile.isEmpty()) && !removeMedia) {
                 referenceModel.setMedia(mediaToKeep);
             }
@@ -109,7 +106,6 @@ public class ReferenceFacadeImpl implements ReferenceFacade {
                 throw new RuntimeException("Error storing reference media: " + e.getMessage());
             }
         } else if (removeMedia && Objects.nonNull(oldMedia)) {
-            // User explicitly wants to remove the media
             try {
                 mediaService.flagMediaForDelete(oldMedia.getCode(), siteModel);
                 referenceModel.setMedia(null);

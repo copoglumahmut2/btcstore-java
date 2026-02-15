@@ -25,4 +25,5 @@ public interface DomainConstant {
     String CATEGORY_TABLE_NAME = "categories";
     String SUCCESS_STORY_TABLE_NAME = "success_stories";
     String REFERENCE_TABLE_NAME = "references";
+    String PARTNER_TABLE_NAME = "partners";
 }
