@@ -6,5 +6,6 @@ public interface ControllerMappings {
     String CODE = "/{code}";
     String test = "/test";
     String MEDIAS = "/medias";
+    String BANNERS = "/banners";
 }
 

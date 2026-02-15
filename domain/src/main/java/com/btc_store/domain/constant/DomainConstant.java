@@ -21,4 +21,5 @@ public interface DomainConstant {
     String CMSCATEGORYTYPEMODEL_TABLE_NAME = "cmscategorytypes";
     String USER_AUDIT_TABLE_NAME = "useraudits";
     String DATAINTEGRATIONLOG_TABLE_NAME = "dataintegrationlogs";
+    String BANNER_TABLE_NAME = "banners";
 }
