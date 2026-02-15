@@ -4,12 +4,14 @@ import com.btc_store.domain.data.custom.SuccessStoryData;
 import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.MediaModel;
+import com.btc_store.domain.model.custom.SectorModel;
 import com.btc_store.domain.model.custom.SuccessStoryModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.SuccessStoryFacade;
 import com.btc_store.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -89,6 +91,12 @@ public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
                 successStoryModel.setMedia(mediaToKeep);
             }
         }
+
+        SectorModel sectorModel = null;
+        if (Objects.nonNull(successStoryData.getSector()) && StringUtils.isNotEmpty(successStoryData.getSector().getCode())) {
+            sectorModel = searchService.searchByCodeAndSite(SectorModel.class, successStoryData.getSector().getCode(), siteModel);
+        }
+        successStoryModel.setSector(sectorModel);
 
         boolean hasNewMedia = Objects.nonNull(mediaFile) && !mediaFile.isEmpty();
 

@@ -2,6 +2,7 @@ package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.model.custom.MediaModel;
+import com.btc_store.domain.model.custom.SectorModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.localize.Localized;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
@@ -33,8 +34,8 @@ public class StoreSuccessStoryModel extends StoreCodeBasedItemModel {
     @Column(name = "company", length = 500, nullable = false)
     private String company;
 
-    @Column(name = "industry", length = 500)
-    private String industry;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private SectorModel sector;
 
     @Embedded
     @AttributeOverrides({

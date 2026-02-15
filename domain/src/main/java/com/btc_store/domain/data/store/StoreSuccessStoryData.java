@@ -1,5 +1,6 @@
 package com.btc_store.domain.data.store;
 
+import com.btc_store.domain.data.custom.SectorData;
 import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
 import com.btc_store.domain.data.extend.BaseData;
@@ -14,7 +15,7 @@ import java.util.List;
 public class StoreSuccessStoryData extends BaseData {
 
     private String company;
-    private String industry;
+    private SectorData sector;
     private LocalizeData title;
     private LocalizeData htmlContent;
     private MediaData media;
