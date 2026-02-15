@@ -1,6 +1,7 @@
 package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.BannerData;
+import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.BannerModel;
 import com.btc_store.domain.model.custom.MediaModel;
@@ -76,7 +77,7 @@ public class BannerFacadeImpl implements BannerFacade {
         // Media dosyası geldiyse kaydet ve banner'a bağla
         if (Objects.nonNull(mediaFile) && !mediaFile.isEmpty()) {
             try {
-                var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode("banner", siteModel);
+                var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.BANNER.getValue(), siteModel);
                 var mediaModel = mediaService.storage(mediaFile, false, cmsCategoryModel, siteModel);
                 bannerModel.setMedia(mediaModel);
 

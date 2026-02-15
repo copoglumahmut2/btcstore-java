@@ -4,8 +4,8 @@ import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.extend.CodeBasedItemModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
+import com.btc_store.domain.model.custom.localize.Localized;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
-import com.btc_store.domain.model.store.localize.StoreLocalized;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class StoreBannerModel extends CodeBasedItemModel {
             @AttributeOverride(name = "es", column = @Column(name = "title_es", length = 500)),
             @AttributeOverride(name = "it", column = @Column(name = "title_it", length = 500))
     })
-    private StoreLocalized title;
+    private Localized title;
 
     @Embedded
     @AttributeOverrides({
@@ -49,7 +49,7 @@ public class StoreBannerModel extends CodeBasedItemModel {
             @AttributeOverride(name = "es", column = @Column(name = "subtitle_es", length = 1000)),
             @AttributeOverride(name = "it", column = @Column(name = "subtitle_it", length = 1000))
     })
-    private StoreLocalized subtitle;
+    private Localized subtitle;
 
     @Embedded
     @AttributeOverrides({
@@ -60,7 +60,7 @@ public class StoreBannerModel extends CodeBasedItemModel {
             @AttributeOverride(name = "es", column = @Column(name = "button_text_es", length = 200)),
             @AttributeOverride(name = "it", column = @Column(name = "button_text_it", length = 200))
     })
-    private StoreLocalized buttonText;
+    private Localized buttonText;
 
     @Column(length = 500)
     private String buttonLink;

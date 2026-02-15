@@ -42,14 +42,21 @@ public class StoreCmsCategoryModel extends CodeBasedItemModel {
     })
     private Localized name;
 
-    private Boolean root;
-
     @OneToOne(fetch = FetchType.LAZY)
     private CmsCategoryModel cmsCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private CmsCategoryTypeModel cmsCategoryType;
 
-    private String description;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "tr", column = @Column(name = "description_tr")),
+            @AttributeOverride(name = "en", column = @Column(name = "description_en")),
+            @AttributeOverride(name = "de", column = @Column(name = "description_de")),
+            @AttributeOverride(name = "fr", column = @Column(name = "description_fr")),
+            @AttributeOverride(name = "es", column = @Column(name = "description_es")),
+            @AttributeOverride(name = "it", column = @Column(name = "description_it"))
+    })
+    private Localized description;
 
 }

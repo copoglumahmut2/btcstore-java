@@ -6,9 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum MediaCategory {
-    PRODUCT("product"),
-    BANNER("banner"),
-    OTHER("other");
+    BANNER("banner_cms");
 
     private String value;
 }

@@ -12,7 +12,5 @@ public class StoreCmsCategoryData extends BaseData {
 
     private LocalizeData name;
     private CmsCategoryTypeData cmsCategoryType;
-    private boolean root;
-    private String bgColor;
-    private String description;
+    private LocalizeData description;
 }
