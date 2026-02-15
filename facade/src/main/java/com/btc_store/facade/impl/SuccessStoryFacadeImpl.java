@@ -24,7 +24,6 @@ import java.util.UUID;
 @Slf4j
 public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
 
-    private final SuccessStoryService successStoryService;
     private final SiteService siteService;
     private final ModelMapper modelMapper;
     private final ModelService modelService;
@@ -73,15 +72,17 @@ public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
             oldMedia = successStoryModel.getMedia();
             
             MediaModel mediaToKeep = successStoryModel.getMedia();
-            
-            // Results listesini temizle ve yeniden ekle (ElementCollection için gerekli)
-            successStoryModel.getResults().clear();
-            
+
+            var newResults = successStoryData.getResults();
+            successStoryData.setResults(null);
+
             modelMapper.map(successStoryData, successStoryModel);
-            
-            // Results'ı manuel olarak ekle
-            if (successStoryData.getResults() != null) {
-                successStoryModel.getResults().addAll(successStoryData.getResults());
+
+            successStoryData.setResults(newResults);
+
+            successStoryModel.getResults().clear();
+            if (newResults != null && !newResults.isEmpty()) {
+                successStoryModel.getResults().addAll(newResults);
             }
             
             if ((Objects.isNull(mediaFile) || mediaFile.isEmpty()) && !removeMedia) {
