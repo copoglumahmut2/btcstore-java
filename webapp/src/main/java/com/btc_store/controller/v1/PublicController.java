@@ -5,6 +5,8 @@ import com.btc_store.domain.data.custom.restservice.ServiceResponseData;
 import com.btc_store.domain.enums.ProcessStatus;
 import com.btc_store.facade.BannerFacade;
 import com.btc_store.facade.CategoryFacade;
+import com.btc_store.facade.PartnerFacade;
+import com.btc_store.facade.ReferenceFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +23,8 @@ public class PublicController {
 
     private final BannerFacade bannerFacade;
     private final CategoryFacade categoryFacade;
+    private final PartnerFacade partnerFacade;
+    private final ReferenceFacade referenceFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -43,6 +47,54 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(categories);
+        return responseData;
+    }
+
+    @GetMapping("/partners")
+    @Operation(summary = "Get all active partners for public display")
+    public ServiceResponseData getActivePartners(@Parameter(description = "IsoCode for validation message internalization") 
+                                                 @RequestParam(required = false) String isoCode) {
+        log.info("Inside getActivePartners of PublicController.");
+        var partners = partnerFacade.getActivePartners();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(partners);
+        return responseData;
+    }
+
+    @GetMapping("/partners/home")
+    @Operation(summary = "Get partners to show on home page (limited)")
+    public ServiceResponseData getHomePagePartners(@Parameter(description = "IsoCode for validation message internalization") 
+                                                   @RequestParam(required = false) String isoCode) {
+        log.info("Inside getHomePagePartners of PublicController.");
+        var partners = partnerFacade.getHomePagePartners();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(partners);
+        return responseData;
+    }
+
+    @GetMapping("/references")
+    @Operation(summary = "Get all active references for public display")
+    public ServiceResponseData getActiveReferences(@Parameter(description = "IsoCode for validation message internalization") 
+                                                   @RequestParam(required = false) String isoCode) {
+        log.info("Inside getActiveReferences of PublicController.");
+        var references = referenceFacade.getActiveReferences();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(references);
+        return responseData;
+    }
+
+    @GetMapping("/references/home")
+    @Operation(summary = "Get references to show on home page (limited)")
+    public ServiceResponseData getHomePageReferences(@Parameter(description = "IsoCode for validation message internalization") 
+                                                     @RequestParam(required = false) String isoCode) {
+        log.info("Inside getHomePageReferences of PublicController.");
+        var references = referenceFacade.getHomePageReferences();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(references);
         return responseData;
     }
 }
