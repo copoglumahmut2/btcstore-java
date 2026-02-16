@@ -54,7 +54,7 @@ public class UserGroupController {
     @Operation(summary = "Create or update user group")
     @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserGroupModel', @authorizationConstants.SAVE))")
     public ServiceResponseData saveUserGroup(@Parameter(description = "User Group data to save")
-                                          @Validated @RequestPart(value = "userGroupData") UserGroupData userGroupData,
+                                          @Validated @RequestBody UserGroupData userGroupData,
                                           @Parameter(description = "IsoCode for validation message internalization")
                                           @RequestParam(required = false) String isoCode) {
         log.info("Inside saveUserGroup of UserGroupController.");

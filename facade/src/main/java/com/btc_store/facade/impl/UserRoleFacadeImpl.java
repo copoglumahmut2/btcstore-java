@@ -8,6 +8,7 @@ import com.btc_store.facade.UserRoleFacade;
 import com.btc_store.service.ModelService;
 import com.btc_store.service.SearchService;
 import com.btc_store.service.SiteService;
+import com.btc_store.service.util.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -48,7 +49,7 @@ public class UserRoleFacadeImpl implements UserRoleFacade {
 
         if (userRoleData.isNew()) {
             userRoleModel = modelMapper.map(userRoleData, UserRoleModel.class);
-            userRoleModel.setCode(UUID.randomUUID().toString());
+            ServiceUtils.generateCodeIfMissing(userRoleModel);
             userRoleModel.setSite(siteModel);
         } else {
             userRoleModel = searchService.searchByCodeAndSite(UserRoleModel.class, userRoleData.getCode(), siteModel);

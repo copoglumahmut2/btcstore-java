@@ -54,7 +54,7 @@ public class UserRoleController {
     @Operation(summary = "Create or update user role")
     @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserRoleModel', @authorizationConstants.SAVE))")
     public ServiceResponseData saveUserRole(@Parameter(description = "User Role data to save")
-                                             @Validated @RequestPart(value = "userRoleData") UserRoleData userRoleData,
+                                             @Validated @RequestBody UserRoleData userRoleData,
                                              @Parameter(description = "IsoCode for validation message internalization")
                                              @RequestParam(required = false) String isoCode) {
         log.info("Inside saveUserRole of UserRoleController.");

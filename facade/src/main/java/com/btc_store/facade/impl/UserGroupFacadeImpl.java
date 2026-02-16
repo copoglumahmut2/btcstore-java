@@ -10,6 +10,7 @@ import com.btc_store.facade.UserGroupFacade;
 import com.btc_store.service.ModelService;
 import com.btc_store.service.SearchService;
 import com.btc_store.service.SiteService;
+import com.btc_store.service.util.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,7 +52,7 @@ public class UserGroupFacadeImpl implements UserGroupFacade {
 
         if (userGroupData.isNew()) {
             userGroupModel = modelMapper.map(userGroupData, UserGroupModel.class);
-            userGroupModel.setCode(UUID.randomUUID().toString());
+            ServiceUtils.generateCodeIfMissing(userGroupModel);
             userGroupModel.setSite(siteModel);
         } else {
             userGroupModel = searchService.searchByCodeAndSite(UserGroupModel.class, userGroupData.getCode(), siteModel);
