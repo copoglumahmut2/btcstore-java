@@ -3,8 +3,10 @@ package com.btc_store.facade.impl;
 import com.btc_store.domain.data.custom.localize.LanguageData;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.localize.LanguageModel;
+import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.LanguageFacade;
 import com.btc_store.service.SearchService;
+import com.btc_store.service.SiteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -20,10 +22,14 @@ public class LanguageFacadeImpl implements LanguageFacade {
 
     private final ModelMapper modelMapper;
     private final SearchService searchService;
+    private final SiteService siteService;
 
     @Override
     public List<LanguageData> getAllLanguages() {
-        var languageModels = searchService.search(LanguageModel.class, Map.of(), SearchOperator.AND);
+        var siteModel = siteService.getCurrentSite();
+        var languageModels = searchService.search(LanguageModel.class,
+                Map.of(StoreSiteBasedItemModel.Fields.site, siteModel),
+                SearchOperator.AND);
         return List.of(modelMapper.map(languageModels, LanguageData[].class));
     }
 }

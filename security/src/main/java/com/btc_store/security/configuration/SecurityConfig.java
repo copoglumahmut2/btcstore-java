@@ -1,4 +1,5 @@
 package com.btc_store.security.configuration;
+
 import com.btc_store.security.filter.CustomAuthenticationFilter;
 import com.btc_store.security.filter.CustomAuthorizationFilter;
 import com.btc_store.service.*;
@@ -105,75 +106,18 @@ public class SecurityConfig {
             "/v3/api-docs/**"
     };
 
-    public static String paymentCallbackPath = "/payment-callback";
-    public static String paymentCallbackPathWithoutCart = "/payment-callback-without-cart";
-    public static String paymentCallbackRemaining = "/payment-callback-remaining";
-    
-    public static String[] excludingPaymentPaths = new String[]{
-            "/payment-callback", 
-            "/*/payment-callback",
-            "/payment-callback-without-cart", 
-            "/*/payment-callback-without-cart",
-            "/payment-callback-remaining",
-            "/*/payment-callback-remaining"
-    };
-
-    public static String[] excludingCaptchaAndConsentPaths = new String[]{
-            "/consent/login/**",
-            "/*/consent/login/**",
-            "/consent/*/login/**",
-            "/*/consent/*/login/**"
-    };
-    
-    public static String[] loginPassivePaths = new String[]{
-            "/consent/login-passive/**",
-            "/*/consent/login-passive/**",
-            "/consent/*/login-passive/**",
-            "/*/consent/*/login-passive/**"
-    };
-    
-    public static String[] extProcessPaths = new String[]{"/ext-process/**"};
-    public static String b2bRegistrationEndPoint = "/b2b-registrations";
-    public static String[] b2bRegistrationPath = new String[]{
-            "/b2b-registrations",
-            "/*/b2b-registrations"
-    };
-    public static String supplierEndPoint = "/suppliers";
-    public static String[] supplierPath = new String[]{
-            "/suppliers/**",
-            "/*/suppliers/**"
-    };
-
-    public static String[] excludingHeartBeatPaths = new String[]{
-            "/heart-beat",
-            "/*/heart-beat",
-            "/sap-service-health-check",
-            "/*/sap-service-health-check",
-            "/solr-service-health-check",
-            "/*/solr-service-health-check",
-            "/mail-service-health-check",
-            "/*/mail-service-health-check",
-            "/tcmb-service-health-check",
-            "/*/tcmb-service-health-check"
+    public static String[] publicApiPaths = new String[]{
+            "/public/**",
+            "/*/public/**"
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         String[] allExcludedPaths = ArrayUtils.addAll(
                 ArrayUtils.addAll(
-                        ArrayUtils.addAll(
-                                ArrayUtils.addAll(
-                                        ArrayUtils.addAll(
-                                                ArrayUtils.addAll(
-                                                        ArrayUtils.addAll(
-                                                                ArrayUtils.addAll(excludingPathsForHttpSec, excludingSwaggerPaths),
-                                                                excludingPaymentPaths),
-                                                        excludingCaptchaAndConsentPaths),
-                                                excludingHeartBeatPaths),
-                                        loginPassivePaths),
-                                extProcessPaths),
-                        b2bRegistrationPath),
-                supplierPath);
+                        ArrayUtils.addAll(excludingPathsForHttpSec, excludingSwaggerPaths),
+                        excludingPathsForWebSec),
+                publicApiPaths);
 
         http
                 .cors(cors -> cors.configure(http))
@@ -218,21 +162,9 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         String[] allIgnoredPaths = ArrayUtils.addAll(
                 ArrayUtils.addAll(
-                        ArrayUtils.addAll(
-                                ArrayUtils.addAll(
-                                        ArrayUtils.addAll(
-                                                ArrayUtils.addAll(
-                                                        ArrayUtils.addAll(
-                                                                ArrayUtils.addAll(
-                                                                        ArrayUtils.addAll(excludingPathsForHttpSec, excludingSwaggerPaths),
-                                                                        excludingPaymentPaths),
-                                                                excludingCaptchaAndConsentPaths),
-                                                        excludingHeartBeatPaths),
-                                                excludingPathsForWebSec),
-                                        loginPassivePaths),
-                                extProcessPaths),
-                        b2bRegistrationPath),
-                supplierPath);
+                        ArrayUtils.addAll(excludingPathsForHttpSec, excludingSwaggerPaths),
+                        excludingPathsForWebSec),
+                publicApiPaths);
 
         return (web) -> web.ignoring()
                 .requestMatchers(allIgnoredPaths)
