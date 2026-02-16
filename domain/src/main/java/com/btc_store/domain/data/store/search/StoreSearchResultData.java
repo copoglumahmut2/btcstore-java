@@ -1,7 +1,9 @@
 package com.btc_store.domain.data.store.search;
 
+import com.btc_store.domain.data.custom.CategoryData;
 import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
+import com.btc_store.domain.data.custom.user.UserData;
 import com.btc_store.domain.data.extend.BaseLocalizedDescriptionData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.DataType;
@@ -46,4 +48,8 @@ public class StoreSearchResultData extends BackBaseData {
     private String phoneNumber;
     private Set<BaseLocalizedDescriptionData> userGroups;
     private MediaData picture;
+    private LocalizeData shortDescription;
+    private Set<CategoryData> categories;
+    private Set<UserData> responsibleUsers;
+    private MediaData mainImage;
 }

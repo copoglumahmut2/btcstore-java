@@ -6,8 +6,8 @@ import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.extend.CodeBasedItemModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.localize.Localized;
+import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
-import com.btc_store.domain.model.store.user.StoreUserModel;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -86,10 +86,20 @@ public class StoreProductModel extends CodeBasedItemModel {
     )
     private List<MediaModel> images = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "responsible_user_id")
-    private StoreUserModel responsibleUser;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "product_responsible_users",
+            joinColumns = @JoinColumn(name = PRODUCT_RELATION),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<UserModel> responsibleUsers = new ArrayList<>();
 
-    @Column(nullable = false)
+    @ElementCollection
+    @CollectionTable(name = "product_features", joinColumns = @JoinColumn(name = PRODUCT_RELATION))
+    @Column(name = "feature", length = 500)
+    private List<String> features = new ArrayList<>();
+
     private Boolean active = true;
+
+    private Boolean deleted = false;
 }

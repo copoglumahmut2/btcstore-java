@@ -11,7 +11,8 @@ public enum MediaCategory {
     SUCCESS_STORY("success_story_cms"),
     REFERENCE("reference_cms"),
     PARTNER("partner_cms"),
-    USER("user_cms");
+    USER("user_cms"),
+    PRODUCT("product_cms");
 
     private String value;
 }

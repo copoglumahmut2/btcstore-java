@@ -21,6 +21,9 @@ public class StoreProductData extends BaseData {
     private List<CategoryData> categories = new ArrayList<>();
     private MediaData mainImage;
     private List<MediaData> images = new ArrayList<>();
-    private UserData responsibleUser;
+    private List<UserData> responsibleUsers = new ArrayList<>();
+    private List<String> imageCodesInOrder;
+    private Integer mainImageIndex;
+    private List<String> features = new ArrayList<>();
     private Boolean active;
 }
