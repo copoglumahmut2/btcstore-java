@@ -1,5 +1,6 @@
 package com.btc_store.service.impl;
 
+import com.btc_store.domain.enums.MenuType;
 import com.btc_store.domain.model.custom.MenuLinkItemModel;
 import com.btc_store.domain.model.custom.SiteModel;
 import com.btc_store.persistence.dao.MenuLinkItemDao;
@@ -33,6 +34,23 @@ public class MenuLinkItemServiceImpl implements MenuLinkItemService {
         SiteModel siteModel = siteService.getCurrentSite();
         Assert.notNull(siteModel, "Site must not be null");
         return menuDao.findByIsRootTrueAndSiteOrderByDisplayOrderAsc(siteModel);
+    }
+
+    @Override
+    public List<MenuLinkItemModel> getMenusByType(String menuType) {
+        SiteModel siteModel = siteService.getCurrentSite();
+        Assert.notNull(siteModel, "Site must not be null");
+        Assert.notNull(menuType, "Menu type must not be null");
+        
+        // String'i MenuType enum'una dönüştür
+        MenuType menuTypeEnum;
+        try {
+            menuTypeEnum = MenuType.valueOf(menuType);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid menu type: " + menuType + ". Valid values are: ADMIN_PANEL, PUBLIC");
+        }
+        
+        return menuDao.findByMenuTypeAndSiteOrderByDisplayOrderAsc(menuTypeEnum, siteModel);
     }
 
     @Override

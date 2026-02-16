@@ -1,6 +1,7 @@
 package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
+import com.btc_store.domain.enums.MenuType;
 import com.btc_store.domain.model.custom.MenuLinkItemModel;
 import com.btc_store.domain.model.custom.extend.CodeBasedItemModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
@@ -58,6 +59,9 @@ public class StoreMenuLinkItemModel extends CodeBasedItemModel {
 
     @Column(name = "url", length = 500)
     private String url;
+
+    @Enumerated(EnumType.STRING)
+    private MenuType menuType = MenuType.PUBLIC;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = PARENT_MENU_LINK_ITEM_RELATION)

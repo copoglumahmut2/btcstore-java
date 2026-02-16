@@ -10,6 +10,8 @@ public interface MenuLinkItemFacade {
 
     List<MenuLinkItemData> getRootMenus();
 
+    List<MenuLinkItemData> getMenusByType(String menuType);
+
     MenuLinkItemData getMenuByCode(String code);
 
     MenuLinkItemData saveMenu(MenuLinkItemData menuData);

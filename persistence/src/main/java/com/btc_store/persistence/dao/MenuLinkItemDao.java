@@ -1,5 +1,6 @@
 package com.btc_store.persistence.dao;
 
+import com.btc_store.domain.enums.MenuType;
 import com.btc_store.domain.model.custom.MenuLinkItemModel;
 import com.btc_store.domain.model.custom.SiteModel;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,9 @@ public interface MenuLinkItemDao extends JpaRepository<MenuLinkItemModel, Long> 
     List<MenuLinkItemModel> findBySiteOrderByDisplayOrderAsc(SiteModel site);
 
     List<MenuLinkItemModel> findByIsRootTrueAndSiteOrderByDisplayOrderAsc(SiteModel site);
+
+    @Query("SELECT m FROM MenuLinkItemModel m WHERE m.menuType = :menuType AND m.site = :site ORDER BY m.displayOrder ASC")
+    List<MenuLinkItemModel> findByMenuTypeAndSiteOrderByDisplayOrderAsc(@Param("menuType") MenuType menuType, @Param("site") SiteModel site);
 
     @Query("SELECT m FROM MenuLinkItemModel m LEFT JOIN FETCH m.userGroups WHERE m.site = :site ORDER BY m.displayOrder ASC")
     List<MenuLinkItemModel> findAllWithUserGroupsBySite(@Param("site") SiteModel site);

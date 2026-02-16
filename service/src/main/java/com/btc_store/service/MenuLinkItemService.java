@@ -10,6 +10,8 @@ public interface MenuLinkItemService {
 
     List<MenuLinkItemModel> getRootMenus();
 
+    List<MenuLinkItemModel> getMenusByType(String menuType);
+
     List<MenuLinkItemModel> getMenusWithUserGroups();
 
     MenuLinkItemModel getMenuByCode(String code);
