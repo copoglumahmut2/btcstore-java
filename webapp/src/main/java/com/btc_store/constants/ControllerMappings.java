@@ -16,6 +16,7 @@ public interface ControllerMappings {
     String PARAMETERS = "/parameters";
     String USERS = "/users";
     String PRODUCTS = "/products";
+    String DOCUMENTS = "/documents";
     String SEARCH = "/search";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";
