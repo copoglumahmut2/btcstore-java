@@ -4,8 +4,11 @@ import com.btc_store.domain.data.custom.ProductData;
 import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.CategoryModel;
+import com.btc_store.domain.model.custom.CmsCategoryModel;
 import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.ProductModel;
+import com.btc_store.domain.model.custom.SiteModel;
+import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.ProductFacade;
@@ -66,109 +69,29 @@ public class ProductFacadeImpl implements ProductFacade {
             modelMapper.map(productData, productModel);
         }
 
-        // Handle categories
+        List<CategoryModel> categories =new ArrayList<>();
         if (CollectionUtils.isNotEmpty(productData.getCategories())) {
-            List<CategoryModel> categories = productData.getCategories().stream()
-                    .map(categoryData -> searchService.searchByCodeAndSite(CategoryModel.class, categoryData.getCode(), siteModel))
-                    .collect(Collectors.toList());
-            productModel.setCategories(categories);
-        } else {
-            productModel.setCategories(new ArrayList<>());
+            for (var category : productData.getCategories()) {
+                categories.add(searchService.searchByCodeAndSite(CategoryModel.class, category.getCode(), siteModel));
+            }
         }
+        productModel.setCategories(categories);
 
-        // Handle responsible users (multiple)
+        List<UserModel> responsibleUsers = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(productData.getResponsibleUsers())) {
-            List<UserModel> users = productData.getResponsibleUsers().stream()
-                    .map(userData -> searchService.searchByCodeAndSite(UserModel.class, userData.getCode(), siteModel))
-                    .collect(Collectors.toList());
-            productModel.setResponsibleUsers(users);
-        } else {
-            productModel.setResponsibleUsers(new ArrayList<>());
+            for (var user : productData.getResponsibleUsers()) {
+                responsibleUsers.add(searchService.searchByCodeAndSite(UserModel.class, user.getCode(), siteModel));
+            }
         }
+        productModel.setResponsibleUsers(responsibleUsers);
 
-        // Handle features
         if (CollectionUtils.isNotEmpty(productData.getFeatures())) {
             productModel.setFeatures(productData.getFeatures());
         } else {
             productModel.setFeatures(new ArrayList<>());
         }
 
-        // Handle images upload - preserve order and existing images
-        List<MediaModel> finalImages = new ArrayList<>();
-        
-        if (Objects.nonNull(imageFiles) && !imageFiles.isEmpty()) {
-            try {
-                var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.PRODUCT.getValue(), siteModel);
-                
-                // First, add existing images in order (if imageCodesInOrder is provided)
-                if (CollectionUtils.isNotEmpty(productData.getImageCodesInOrder())) {
-                    for (String imageCode : productData.getImageCodesInOrder()) {
-                        existingImages.stream()
-                                .filter(img -> img.getCode().equals(imageCode))
-                                .findFirst()
-                                .ifPresent(finalImages::add);
-                    }
-                    log.info("Kept {} existing images", finalImages.size());
-                }
-                
-                // Then, upload and add new images
-                for (MultipartFile imageFile : imageFiles) {
-                    if (!imageFile.isEmpty()) {
-                        var mediaModel = mediaService.storage(imageFile, false, cmsCategoryModel, siteModel);
-                        finalImages.add(mediaModel);
-                    }
-                }
-                log.info("Added {} new images. Total: {}", imageFiles.size(), finalImages.size());
-                
-                productModel.setImages(finalImages);
-                
-                // Set main image based on index
-                Integer mainImageIndex = productData.getMainImageIndex();
-                if (mainImageIndex != null && mainImageIndex >= 0 && mainImageIndex < finalImages.size()) {
-                    productModel.setMainImage(finalImages.get(mainImageIndex));
-                } else if (!finalImages.isEmpty()) {
-                    productModel.setMainImage(finalImages.get(0));
-                }
-            } catch (Exception e) {
-                log.error("Error storing product images: {}", e.getMessage());
-                throw new RuntimeException("Error storing product images: " + e.getMessage());
-            }
-        } else {
-            // Keep existing images if no new images uploaded
-            // But respect the order and deletions from frontend
-            if (Objects.nonNull(productData.getImageCodesInOrder())) {
-                // Frontend sent ordered list of image codes (can be empty to clear all images)
-                List<MediaModel> orderedImages = new ArrayList<>();
-                for (String imageCode : productData.getImageCodesInOrder()) {
-                    existingImages.stream()
-                            .filter(img -> img.getCode().equals(imageCode))
-                            .findFirst()
-                            .ifPresent(orderedImages::add);
-                }
-                productModel.setImages(orderedImages);
-                log.info("Updated image order. New count: {}, Original count: {}", orderedImages.size(), existingImages.size());
-                
-                // Clear main image if no images left
-                if (orderedImages.isEmpty()) {
-                    productModel.setMainImage(null);
-                    log.info("Cleared all images and main image");
-                }
-            } else {
-                productModel.setImages(existingImages);
-            }
-            
-            // Update main image if provided and images exist
-            if (!productModel.getImages().isEmpty()) {
-                Integer mainImageIndex = productData.getMainImageIndex();
-                if (mainImageIndex != null && mainImageIndex >= 0 && mainImageIndex < productModel.getImages().size()) {
-                    productModel.setMainImage(productModel.getImages().get(mainImageIndex));
-                    log.info("Updated main image to index: {}", mainImageIndex);
-                } else if (Objects.isNull(productModel.getMainImage())) {
-                    // Set first image as main if not set
-                    productModel.setMainImage(productModel.getImages().get(0));
-                }
-            }
-        }
+        handleProductImages(productData, productModel, imageFiles, existingImages, siteModel);
 
         var savedModel = modelService.save(productModel);
         return modelMapper.map(savedModel, ProductData.class);
@@ -181,5 +104,134 @@ public class ProductFacadeImpl implements ProductFacade {
         productModel.setDeleted(true);
         productModel.setActive(false);
         modelService.save(productModel);
+    }
+
+    /**
+     * Ürün görsellerini işler - yeni yükleme, sıralama ve ana görsel seçimi
+     */
+    private void handleProductImages(ProductData productData, ProductModel productModel, 
+                                     List<MultipartFile> imageFiles, List<MediaModel> existingImages,
+                                     SiteModel siteModel) {
+        if (Objects.nonNull(imageFiles) && !imageFiles.isEmpty()) {
+            // Yeni görseller yükleniyor
+            uploadAndSetNewImages(productData, productModel, imageFiles, existingImages, siteModel);
+        } else {
+            // Mevcut görselleri güncelle (sıralama veya silme)
+            updateExistingImages(productData, productModel, existingImages);
+        }
+    }
+
+    /**
+     * Yeni görselleri yükler ve mevcut görsellerle birleştirir
+     */
+    private void uploadAndSetNewImages(ProductData productData, ProductModel productModel, 
+                                       List<MultipartFile> imageFiles, List<MediaModel> existingImages, 
+                                       SiteModel siteModel) {
+        try {
+            var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.PRODUCT.getValue(), siteModel);
+            List<MediaModel> finalImages = new ArrayList<>();
+            
+            // Önce mevcut görselleri sıraya ekle
+            addExistingImagesInOrder(productData, existingImages, finalImages);
+            
+            // Sonra yeni görselleri yükle ve ekle
+            uploadNewImages(imageFiles, cmsCategoryModel, siteModel, finalImages);
+            
+            productModel.setImages(finalImages);
+            
+            // Ana görseli ayarla
+            setMainImage(productData, productModel, finalImages);
+            
+            log.info("Toplam {} görsel işlendi", finalImages.size());
+        } catch (Exception e) {
+            log.error("Ürün görselleri yüklenirken hata: {}", e.getMessage());
+            throw new RuntimeException("Ürün görselleri yüklenirken hata: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Mevcut görselleri belirtilen sıraya göre ekler
+     */
+    private void addExistingImagesInOrder(ProductData productData, List<MediaModel> existingImages, List<MediaModel> finalImages) {
+        if (CollectionUtils.isNotEmpty(productData.getImageCodesInOrder())) {
+            for (String imageCode : productData.getImageCodesInOrder()) {
+                existingImages.stream()
+                        .filter(img -> img.getCode().equals(imageCode))
+                        .findFirst()
+                        .ifPresent(finalImages::add);
+            }
+            log.info("{} mevcut görsel korundu", finalImages.size());
+        }
+    }
+
+    /**
+     * Yeni görselleri yükler
+     */
+    private void uploadNewImages(List<MultipartFile> imageFiles, CmsCategoryModel cmsCategoryModel,
+                                 SiteModel siteModel, List<MediaModel> finalImages) {
+        for (MultipartFile imageFile : imageFiles) {
+            if (!imageFile.isEmpty()) {
+                var mediaModel = mediaService.storage(imageFile, false, cmsCategoryModel, siteModel);
+                finalImages.add(mediaModel);
+            }
+        }
+        log.info("{} yeni görsel yüklendi", imageFiles.size());
+    }
+
+    /**
+     * Mevcut görselleri günceller (yeni yükleme olmadan)
+     */
+    private void updateExistingImages(ProductData productData, ProductModel productModel, List<MediaModel> existingImages) {
+        if (Objects.nonNull(productData.getImageCodesInOrder())) {
+            // Frontend'den gelen sıralı görsel kodlarını kullan
+            List<MediaModel> orderedImages = new ArrayList<>();
+            for (String imageCode : productData.getImageCodesInOrder()) {
+                existingImages.stream()
+                        .filter(img -> img.getCode().equals(imageCode))
+                        .findFirst()
+                        .ifPresent(orderedImages::add);
+            }
+            productModel.setImages(orderedImages);
+            log.info("Görsel sırası güncellendi. Yeni: {}, Eski: {}", orderedImages.size(), existingImages.size());
+            
+            // Görsel kalmadıysa ana görseli temizle
+            if (orderedImages.isEmpty()) {
+                productModel.setMainImage(null);
+                log.info("Tüm görseller ve ana görsel temizlendi");
+            }
+        } else {
+            productModel.setImages(existingImages);
+        }
+        
+        // Ana görseli güncelle
+        if (!productModel.getImages().isEmpty()) {
+            updateMainImageFromIndex(productData, productModel);
+        }
+    }
+
+    /**
+     * Ana görseli index'e göre ayarlar
+     */
+    private void setMainImage(ProductData productData, ProductModel productModel, List<MediaModel> images) {
+        Integer mainImageIndex = productData.getMainImageIndex();
+        if (mainImageIndex != null && mainImageIndex >= 0 && mainImageIndex < images.size()) {
+            productModel.setMainImage(images.get(mainImageIndex));
+        } else if (!images.isEmpty()) {
+            productModel.setMainImage(images.get(0));
+        }
+    }
+
+    /**
+     * Mevcut görseller için ana görseli günceller
+     */
+    private void updateMainImageFromIndex(ProductData productData, ProductModel productModel) {
+        Integer mainImageIndex = productData.getMainImageIndex();
+        if (mainImageIndex != null && mainImageIndex >= 0 && mainImageIndex < productModel.getImages().size()) {
+            productModel.setMainImage(productModel.getImages().get(mainImageIndex));
+            log.info("Ana görsel index'e güncellendi: {}", mainImageIndex);
+        } else if (Objects.isNull(productModel.getMainImage())) {
+            // Ana görsel yoksa ilk görseli ayarla
+            productModel.setMainImage(productModel.getImages().get(0));
+        }
     }
 }
