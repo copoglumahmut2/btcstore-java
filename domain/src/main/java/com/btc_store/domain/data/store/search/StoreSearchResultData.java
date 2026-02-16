@@ -3,6 +3,8 @@ package com.btc_store.domain.data.store.search;
 import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
+import com.btc_store.domain.enums.DataType;
+import com.btc_store.domain.enums.ParameterType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,4 +30,8 @@ public class StoreSearchResultData extends BackBaseData {
     private String company;
     private String industry;
     private Boolean showOnHome;
+    private String value;
+    private DataType dataType;
+    private ParameterType parameterType;
+    private Boolean encrypt;
 }

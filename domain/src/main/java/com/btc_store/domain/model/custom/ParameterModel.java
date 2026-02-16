@@ -1,11 +1,13 @@
 package com.btc_store.domain.model.custom;
 
-
 import com.btc_store.domain.model.store.StoreParameterModel;
 import jakarta.persistence.Entity;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serial;
 
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class ParameterModel extends StoreParameterModel {
 
     @Serial

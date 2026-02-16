@@ -13,6 +13,7 @@ public interface ControllerMappings {
     String PARTNERS = "/partners";
     String SECTORS = "/sectors";
     String MENU_LINK_ITEMS = "/menu-link-items";
+    String PARAMETERS = "/parameters";
     String SEARCH = "/search";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";
