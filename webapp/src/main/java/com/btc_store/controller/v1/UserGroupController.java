@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,14 +27,54 @@ public class UserGroupController {
     @Operation(summary = "Get all user groups")
     @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserGroupModel', @authorizationConstants.READ))")
     public ServiceResponseData getAllUserGroups(@Parameter(description = "IsoCode for validation message internalization")
-                                                @RequestParam(required = false) String isoCode) {
+                                             @RequestParam(required = false) String isoCode) {
         log.info("Inside getAllUserGroups of UserGroupController.");
-        
-        List<UserGroupData> userGroupDataList = userGroupFacade.getAllUserGroups();
-        
+        var userGroups = userGroupFacade.getAllUserGroups();
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
-        responseData.setData(userGroupDataList);
+        responseData.setData(userGroups);
+        return responseData;
+    }
+
+    @GetMapping(ControllerMappings.CODE)
+    @Operation(summary = "Get user group by code")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserGroupModel', @authorizationConstants.READ))")
+    public ServiceResponseData getUserGroupByCode(@Parameter(description = "User Group Code") @PathVariable String code,
+                                               @Parameter(description = "IsoCode for validation message internalization")
+                                               @RequestParam(required = false) String isoCode) {
+        log.info("Inside getUserGroupByCode of UserGroupController with code: {}", code);
+        var userGroup = userGroupFacade.getUserGroupByCode(code);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(userGroup);
+        return responseData;
+    }
+
+    @PostMapping
+    @Operation(summary = "Create or update user group")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserGroupModel', @authorizationConstants.SAVE))")
+    public ServiceResponseData saveUserGroup(@Parameter(description = "User Group data to save")
+                                          @Validated @RequestPart(value = "userGroupData") UserGroupData userGroupData,
+                                          @Parameter(description = "IsoCode for validation message internalization")
+                                          @RequestParam(required = false) String isoCode) {
+        log.info("Inside saveUserGroup of UserGroupController.");
+        var savedUserGroup = userGroupFacade.saveUserGroup(userGroupData);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(savedUserGroup);
+        return responseData;
+    }
+
+    @DeleteMapping(ControllerMappings.CODE)
+    @Operation(summary = "Delete user group by code")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserGroupModel', @authorizationConstants.DELETE))")
+    public ServiceResponseData deleteUserGroup(@Parameter(description = "User Group Code") @PathVariable String code,
+                                            @Parameter(description = "IsoCode for validation message internalization")
+                                            @RequestParam(required = false) String isoCode) {
+        log.info("Inside deleteUserGroup of UserGroupController with code: {}", code);
+        userGroupFacade.deleteUserGroup(code);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
     }
 }
