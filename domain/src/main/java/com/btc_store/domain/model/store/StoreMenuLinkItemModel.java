@@ -70,8 +70,8 @@ public class StoreMenuLinkItemModel extends CodeBasedItemModel {
     @OneToMany(mappedBy = "parentMenuLinkItem", cascade = CascadeType.ALL)
     private Set<MenuLinkItemModel> subMenuLinkItems;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "menu_user_groups",
+    @ManyToMany
+    @JoinTable(name = "menulinkitems_user_groups",
             joinColumns = @JoinColumn(name = MENU_LINK_ITEM_RELATION),
             inverseJoinColumns = @JoinColumn(name = UserGroupModel.USER_GROUP_RELATION))
     private Set<UserGroupModel> userGroups;

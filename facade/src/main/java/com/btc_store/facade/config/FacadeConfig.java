@@ -1,11 +1,13 @@
 package com.btc_store.facade.config;
 
+import com.btc_store.domain.data.custom.MenuLinkItemData;
 import com.btc_store.domain.data.custom.cms.CmsCategoryData;
 import com.btc_store.domain.data.custom.media.MediaData;
 import com.btc_store.domain.data.custom.user.UserData;
 import com.btc_store.domain.data.custom.user.UserGroupData;
 import com.btc_store.domain.model.custom.CmsCategoryModel;
 import com.btc_store.domain.model.custom.MediaModel;
+import com.btc_store.domain.model.custom.MenuLinkItemModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.service.MediaService;
@@ -64,6 +66,14 @@ public class FacadeConfig {
                 skip(destination.getUserGroups());
                 skip(destination.getUserRoles());
                 skip(destination.getLanguage());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<MenuLinkItemData, MenuLinkItemModel>() {
+            @Override
+            protected void configure() {
+                skip(destination.getUserGroups());
+                skip(destination.getParentMenuLinkItem());
             }
         });
 

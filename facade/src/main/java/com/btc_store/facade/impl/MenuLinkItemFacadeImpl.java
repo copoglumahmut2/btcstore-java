@@ -51,9 +51,38 @@ public class MenuLinkItemFacadeImpl implements MenuLinkItemFacade {
     @Override
     public List<MenuLinkItemData> getMenusByType(String menuType) {
         var menuModels = menuService.getMenusByType(menuType);
-        return menuModels.stream()
-                .map(model -> modelMapper.map(model, MenuLinkItemData.class))
+        
+        // Tüm menüleri map'e dönüştür (code -> MenuLinkItemData)
+        Map<String, MenuLinkItemData> menuMap = menuModels.stream()
+                .collect(Collectors.toMap(
+                        MenuLinkItemModel::getCode,
+                        model -> {
+                            MenuLinkItemData data = modelMapper.map(model, MenuLinkItemData.class);
+                            if (Objects.nonNull(model.getParentMenuLinkItem())) {
+                                data.setParentMenuCode(model.getParentMenuLinkItem().getCode());
+                            }
+                            return data;
+                        }
+                ));
+        
+        // Root menüleri bul ve recursive olarak alt menüleri ekle
+        return menuMap.values().stream()
+                .filter(MenuLinkItemData::getIsRoot)
+                .sorted(Comparator.comparing(MenuLinkItemData::getDisplayOrder))
+                .map(rootMenu -> buildMenuTree(rootMenu, menuMap))
                 .collect(Collectors.toList());
+    }
+    
+    private MenuLinkItemData buildMenuTree(MenuLinkItemData menu, Map<String, MenuLinkItemData> menuMap) {
+        // Bu menünün alt menülerini bul
+        Set<MenuLinkItemData> children = menuMap.values().stream()
+                .filter(m -> Objects.nonNull(m.getParentMenuCode()) && m.getParentMenuCode().equals(menu.getCode()))
+                .sorted(Comparator.comparing(MenuLinkItemData::getDisplayOrder))
+                .map(child -> buildMenuTree(child, menuMap))
+                .collect(Collectors.toSet());
+        
+        menu.setSubMenuLinkItems(children);
+        return menu;
     }
 
     @Override
@@ -72,11 +101,14 @@ public class MenuLinkItemFacadeImpl implements MenuLinkItemFacade {
     public MenuLinkItemData saveMenu(MenuLinkItemData menuLinkItemData) {
         var siteModel = siteService.getCurrentSite();
         MenuLinkItemModel menuLinkItemModel;
+        boolean isNew = menuLinkItemData.isNew();
 
-        if (menuLinkItemData.isNew()) {
+        if (isNew) {
             menuLinkItemModel = modelMapper.map(menuLinkItemData, MenuLinkItemModel.class);
             menuLinkItemModel.setCode(UUID.randomUUID().toString());
             menuLinkItemModel.setSite(siteModel);
+            // Yeni kayıt için userGroups'u boş bırak, sonra set edeceğiz
+            menuLinkItemModel.setUserGroups(new HashSet<>());
         } else {
             menuLinkItemModel =  searchService.searchByCodeAndSite(MenuLinkItemModel.class, menuLinkItemData.getCode(), siteModel);
             modelMapper.map(menuLinkItemData, menuLinkItemModel);
@@ -92,20 +124,22 @@ public class MenuLinkItemFacadeImpl implements MenuLinkItemFacade {
             menuLinkItemModel.setIsRoot(true);
         }
 
-        // Handle user groups
+        // Handle user groups - artık menünün ID'si var
         Set<UserGroupModel> userGroups = new HashSet<>();
         if (CollectionUtils.isNotEmpty(menuLinkItemData.getUserGroups())) {
             menuLinkItemData.getUserGroups().forEach(ug ->
-                    userGroups.add(searchService.searchByCodeAndSite(UserGroupModel.class, ug.getCode(), siteModel)));
+                    userGroups.add(userGroupService.getUserGroupModel(ug.getCode(), siteModel)));
         }
         menuLinkItemModel.setUserGroups(userGroups);
 
+        // Final save (update için ilk save, new için userGroups ile ikinci save)
         var savedModel = modelService.save(menuLinkItemModel);
         return modelMapper.map(savedModel, MenuLinkItemData.class);
     }
 
     @Override
     public void deleteMenu(String code) {
-        menuService.deleteMenu(code);
+        var siteModel = siteService.getCurrentSite();
+        modelService.remove(searchService.searchByCodeAndSite(MenuLinkItemModel.class, code, siteModel));
     }
 }
