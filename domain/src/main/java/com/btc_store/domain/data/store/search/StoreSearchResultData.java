@@ -2,11 +2,15 @@ package com.btc_store.domain.data.store.search;
 
 import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
+import com.btc_store.domain.data.extend.BaseLocalizedDescriptionData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.DataType;
 import com.btc_store.domain.enums.ParameterType;
+import com.btc_store.domain.model.custom.user.UserGroupModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
@@ -34,4 +38,11 @@ public class StoreSearchResultData extends BackBaseData {
     private DataType dataType;
     private ParameterType parameterType;
     private Boolean encrypt;
+    private String username;
+    private String firstName;
+    private String lastName;
+    private Boolean deleted;
+    private String email;
+    private String phoneNumber;
+    private Set<BaseLocalizedDescriptionData> userGroups;
 }
