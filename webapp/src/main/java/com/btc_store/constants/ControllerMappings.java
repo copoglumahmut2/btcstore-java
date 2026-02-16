@@ -15,6 +15,7 @@ public interface ControllerMappings {
     String MENU_LINK_ITEMS = "/menu-link-items";
     String PARAMETERS = "/parameters";
     String USERS = "/users";
+    String PRODUCTS = "/products";
     String SEARCH = "/search";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";

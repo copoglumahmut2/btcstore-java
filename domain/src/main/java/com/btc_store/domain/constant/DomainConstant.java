@@ -28,4 +28,5 @@ public interface DomainConstant {
     String PARTNER_TABLE_NAME = "partners";
     String SECTOR_TABLE_NAME = "sectors";
     String MENU_LINK_TABLE_NAME = "menulinkitems";
+    String PRODUCT_TABLE_NAME = "products";
 }
