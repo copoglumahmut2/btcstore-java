@@ -45,4 +45,5 @@ public class StoreSearchResultData extends BackBaseData {
     private String email;
     private String phoneNumber;
     private Set<BaseLocalizedDescriptionData> userGroups;
+    private MediaData picture;
 }

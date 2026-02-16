@@ -1,5 +1,6 @@
 package com.btc_store.domain.data.store.user;
 
+import com.btc_store.domain.data.custom.media.MediaData;
 import com.btc_store.domain.data.custom.user.UserGroupData;
 import com.btc_store.domain.data.extend.BaseData;
 import lombok.Data;
@@ -23,5 +24,6 @@ public class StoreUserData extends BaseData {
     private String definedPassword;
     private String newPassword;
     private String newPasswordConfirm;
+    private MediaData picture;
     private Set<UserGroupData> userGroups;
 }

@@ -1,14 +1,14 @@
 package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.user.UserData;
+import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
+import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.UserFacade;
-import com.btc_store.service.ModelService;
-import com.btc_store.service.SearchService;
-import com.btc_store.service.SiteService;
+import com.btc_store.service.*;
 import com.btc_store.service.user.UserGroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -31,6 +32,8 @@ public class UserFacadeImpl implements UserFacade {
     private final SearchService searchService;
     private final PasswordEncoder passwordEncoder;
     private final UserGroupService userGroupService;
+    private final MediaService mediaService;
+    private final CmsCategoryService cmsCategoryService;
 
     @Override
     public List<UserData> getAllUsers() {
@@ -49,19 +52,26 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public UserData saveUser(UserData userData) {
+    public UserData saveUser(UserData userData, MultipartFile pictureFile, boolean removePicture) {
         UserModel userModel;
         var siteModel = siteService.getCurrentSite();
-
+        MediaModel oldPicture = null;
 
         if (userData.isNew()) {
-            userModel = modelService.create(UserModel.class);
+            userModel = modelMapper.map(userData, UserModel.class);
+            userModel.setCode(UUID.randomUUID().toString());
             userModel.setSite(siteModel);
         } else {
             userModel = searchService.searchByCodeAndSite(UserModel.class, userData.getCode(), siteModel);
+            oldPicture = userModel.getPicture();
+            MediaModel pictureToKeep = userModel.getPicture();
+            modelMapper.map(userData, userModel);
+
+            if ((Objects.isNull(pictureFile) || pictureFile.isEmpty()) && !removePicture) {
+                userModel.setPicture(pictureToKeep);
+            }
         }
 
-        modelMapper.map(userData, userModel);
 
         Set<UserGroupModel> userGroups = new HashSet<>();
         if (CollectionUtils.isNotEmpty(userData.getUserGroups())) {
@@ -76,6 +86,32 @@ public class UserFacadeImpl implements UserFacade {
             userModel.setPasswordEncoded(Boolean.TRUE);
         } else {
             userModel.setPasswordEncoded(Boolean.TRUE);
+        }
+
+        // Handle profile picture upload
+        boolean hasNewPicture = Objects.nonNull(pictureFile) && !pictureFile.isEmpty();
+
+        if (hasNewPicture) {
+            try {
+                var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.USER.getValue(), siteModel);
+                var mediaModel = mediaService.storage(pictureFile, false, cmsCategoryModel, siteModel);
+                userModel.setPicture(mediaModel);
+
+                if (Objects.nonNull(oldPicture)) {
+                    mediaService.flagMediaForDelete(oldPicture.getCode(), siteModel);
+                }
+            } catch (Exception e) {
+                log.error("Error storing user profile picture: {}", e.getMessage());
+                throw new RuntimeException("Error storing user profile picture: " + e.getMessage());
+            }
+        } else if (removePicture && Objects.nonNull(oldPicture)) {
+            // User explicitly wants to remove the picture
+            try {
+                mediaService.flagMediaForDelete(oldPicture.getCode(), siteModel);
+                userModel.setPicture(null);
+            } catch (Exception e) {
+                log.error("Error removing user profile picture: {}", e.getMessage());
+            }
         }
 
         var savedModel = modelService.save(userModel);

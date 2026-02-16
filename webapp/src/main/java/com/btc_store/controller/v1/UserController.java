@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -52,11 +53,16 @@ public class UserController {
     @Operation(summary = "Create or update user")
     @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserModel', @authorizationConstants.SAVE))")
     public ServiceResponseData saveUser(@Parameter(description = "User data to save")
-                                        @Validated @RequestBody UserData userData,
+                                        @Validated @RequestPart(value = "userData") UserData userData,
+                                        @Parameter(description = "Profile picture file")
+                                        @RequestPart(value = "pictureFile", required = false) MultipartFile pictureFile,
+                                        @Parameter(description = "Remove existing picture")
+                                        @RequestParam(value = "removePicture", required = false, defaultValue = "false") String removePicture,
                                         @Parameter(description = "IsoCode for validation message internalization")
                                         @RequestParam(required = false) String isoCode) {
         log.info("Inside saveUser of UserController.");
-        var savedUser = userFacade.saveUser(userData);
+        boolean shouldRemovePicture = "true".equals(removePicture);
+        var savedUser = userFacade.saveUser(userData, pictureFile, shouldRemovePicture);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedUser);
