@@ -142,10 +142,10 @@ public class ProductFacadeImpl implements ProductFacade {
             // Ana görseli ayarla
             setMainImage(productData, productModel, finalImages);
             
-            log.info("Toplam {} görsel işlendi", finalImages.size());
+            log.info("Total {} images processed", finalImages.size());
         } catch (Exception e) {
-            log.error("Ürün görselleri yüklenirken hata: {}", e.getMessage());
-            throw new RuntimeException("Ürün görselleri yüklenirken hata: " + e.getMessage());
+            log.error("Error uploading product images: {}", e.getMessage());
+            throw new RuntimeException("Error uploading product images: " + e.getMessage());
         }
     }
 
@@ -160,7 +160,7 @@ public class ProductFacadeImpl implements ProductFacade {
                         .findFirst()
                         .ifPresent(finalImages::add);
             }
-            log.info("{} mevcut görsel korundu", finalImages.size());
+            log.info("{} existing images preserved", finalImages.size());
         }
     }
 
@@ -175,7 +175,7 @@ public class ProductFacadeImpl implements ProductFacade {
                 finalImages.add(mediaModel);
             }
         }
-        log.info("{} yeni görsel yüklendi", imageFiles.size());
+        log.info("{} new images uploaded", imageFiles.size());
     }
 
     /**
@@ -192,12 +192,12 @@ public class ProductFacadeImpl implements ProductFacade {
                         .ifPresent(orderedImages::add);
             }
             productModel.setImages(orderedImages);
-            log.info("Görsel sırası güncellendi. Yeni: {}, Eski: {}", orderedImages.size(), existingImages.size());
+            log.info("Image order updated. New: {}, Original: {}", orderedImages.size(), existingImages.size());
             
             // Görsel kalmadıysa ana görseli temizle
             if (orderedImages.isEmpty()) {
                 productModel.setMainImage(null);
-                log.info("Tüm görseller ve ana görsel temizlendi");
+                log.info("All images and main image cleared");
             }
         } else {
             productModel.setImages(existingImages);
@@ -228,7 +228,7 @@ public class ProductFacadeImpl implements ProductFacade {
         Integer mainImageIndex = productData.getMainImageIndex();
         if (mainImageIndex != null && mainImageIndex >= 0 && mainImageIndex < productModel.getImages().size()) {
             productModel.setMainImage(productModel.getImages().get(mainImageIndex));
-            log.info("Ana görsel index'e güncellendi: {}", mainImageIndex);
+            log.info("Main image updated to index: {}", mainImageIndex);
         } else if (Objects.isNull(productModel.getMainImage())) {
             // Ana görsel yoksa ilk görseli ayarla
             productModel.setMainImage(productModel.getImages().get(0));
