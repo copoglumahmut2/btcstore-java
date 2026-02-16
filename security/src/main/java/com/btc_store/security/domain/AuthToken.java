@@ -13,11 +13,5 @@ import java.util.Set;
 public class AuthToken {
     private String accessToken;
     private String refreshToken;
-    private String username;
-    private String firstName;
-    private String lastName;
-    private String language;
-    private String picture;
-    private Set<String> userGroups;
 }
 

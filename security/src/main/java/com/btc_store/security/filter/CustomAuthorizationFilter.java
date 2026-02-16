@@ -63,8 +63,13 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 var token = new UsernamePasswordAuthenticationToken(username, null, authorities);
                 var jwtUserData = new JwtUserData();
                 jwtUserData.setJwtId(decodedJWT.getId());
-
                 jwtUserData.setSite(siteModel);
+                jwtUserData.setUsername(decodedJWT.getClaim("username").asString());
+                jwtUserData.setFirstName(decodedJWT.getClaim("firstName").asString());
+                jwtUserData.setLastName(decodedJWT.getClaim("lastName").asString());
+                jwtUserData.setPicture(decodedJWT.getClaim("picture").asString());
+                jwtUserData.setLanguage(decodedJWT.getClaim("language").asString());
+
                 token.setDetails(jwtUserData);
                 SecurityContextHolder.getContext().setAuthentication(token);
                 filterChain.doFilter(httpServletRequest, httpServletResponse);

@@ -1,6 +1,7 @@
 package com.btc_store.domain.data.store.search;
 
 import com.btc_store.domain.data.custom.CategoryData;
+import com.btc_store.domain.data.custom.ProductData;
 import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
 import com.btc_store.domain.data.custom.user.UserData;
@@ -8,10 +9,10 @@ import com.btc_store.domain.data.extend.BaseLocalizedDescriptionData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.DataType;
 import com.btc_store.domain.enums.ParameterType;
-import com.btc_store.domain.model.custom.user.UserGroupModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -52,4 +53,6 @@ public class StoreSearchResultData extends BackBaseData {
     private Set<CategoryData> categories;
     private Set<UserData> responsibleUsers;
     private MediaData mainImage;
+    private List<MediaData> medias;
+    private List<ProductData> products;
 }

@@ -151,6 +151,13 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                     .withIssuer(siteModel.getCode())
                     .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                             .collect(Collectors.toList()))
+                    .withClaim("username", userModel.getUsername())
+                    .withClaim("firstName", userModel.getFirstName())
+                    .withClaim("lastName", userModel.getLastName())
+                    .withClaim("picture", mediaService.generateMediaUrl(Objects.nonNull(userModel.getPicture())
+                            ? userModel.getPicture().getServePath() : StringUtils.EMPTY))
+                    .withClaim("language", Objects.nonNull(userModel.getLanguage()) ? userModel.getLanguage().getCode() :
+                            siteModel.getLanguage().getCode())
                     .withJWTId(jwtId)
                     .sign(algorithm);
 
@@ -178,14 +185,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             var authToken = AuthToken.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
-                    .username(userModel.getUsername())
-                    .firstName(userModel.getFirstName())
-                    .lastName(userModel.getLastName())
-                    .userGroups(userGroups.stream().map(UserGroupModel::getCode).collect(Collectors.toSet()))
-                    .picture(mediaService.generateMediaUrl(Objects.nonNull(userModel.getPicture())
-                            ? userModel.getPicture().getServePath() : StringUtils.EMPTY))
-                    .language(Objects.nonNull(userModel.getLanguage()) ? userModel.getLanguage().getCode() :
-                            siteModel.getLanguage().getCode())
                     .build();
 
             request.setAttribute("authToken", authToken);

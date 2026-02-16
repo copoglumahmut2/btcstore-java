@@ -12,4 +12,9 @@ public class StoreJwtUserData {
 
     private String jwtId;
     private SiteModel site;
+    private String username;
+    private String firstName;
+    private String lastName;
+    private String picture;
+    private String language;
 }

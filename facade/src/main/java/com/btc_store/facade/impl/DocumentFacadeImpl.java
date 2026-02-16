@@ -62,7 +62,6 @@ public class DocumentFacadeImpl implements DocumentFacade {
             modelMapper.map(documentData, documentModel);
         }
 
-        // Ürünleri bağla
         List<ProductModel> products = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(documentData.getProducts())) {
             for (var product : documentData.getProducts()) {
@@ -70,8 +69,22 @@ public class DocumentFacadeImpl implements DocumentFacade {
             }
         }
         documentModel.setProducts(products);
+        
+        if (Objects.nonNull(documentData.getMedias())) {
+            List<MediaModel> existingMedias = new ArrayList<>();
+            for (var mediaData : documentData.getMedias()) {
+                if (Objects.nonNull(mediaData.getCode())) {
+                    var mediaModel = searchService.searchByCodeAndSite(MediaModel.class, mediaData.getCode(), siteModel);
+                    if (Objects.nonNull(mediaModel)) {
+                        existingMedias.add(mediaModel);
+                    }
+                }
+            }
+            documentModel.setMedias(existingMedias);
+            log.info("Updated document with {} existing media files", existingMedias.size());
+        }
 
-        // Media dosyalarını yükle
+        // Yeni media dosyalarını yükle ve ekle
         if (Objects.nonNull(mediaFiles) && !mediaFiles.isEmpty()) {
             try {
                 var cmsCategoryModel = cmsCategoryService.getCmsCategoryByCode(MediaCategory.PRODUCT.getValue(), siteModel);
@@ -85,7 +98,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
                 }
                 
                 // Mevcut dosyalara yeni dosyaları ekle
-                if (documentModel.getMedias() == null) {
+                if (Objects.isNull(documentModel.getMedias())) {
                     documentModel.setMedias(uploadedMediaFiles);
                 } else {
                     documentModel.getMedias().addAll(uploadedMediaFiles);
