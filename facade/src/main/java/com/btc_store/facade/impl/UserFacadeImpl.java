@@ -4,6 +4,7 @@ import com.btc_store.domain.data.custom.user.UserData;
 import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.MediaModel;
+import com.btc_store.domain.model.custom.localize.LanguageModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
@@ -86,6 +87,12 @@ public class UserFacadeImpl implements UserFacade {
             userModel.setPasswordEncoded(Boolean.TRUE);
         } else {
             userModel.setPasswordEncoded(Boolean.TRUE);
+        }
+
+        if (Objects.nonNull(userData.getLanguage()) && StringUtils.isNotEmpty(userData.getLanguage().getCode())) {
+            userModel.setLanguage(searchService.searchByCodeAndSite(LanguageModel.class, userData.getLanguage().getCode(), siteModel));
+        } else {
+            userModel.setLanguage(searchService.searchByCodeAndSite(LanguageModel.class, "tr", siteModel));
         }
 
         // Handle profile picture upload

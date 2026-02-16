@@ -18,6 +18,7 @@ public interface ControllerMappings {
     String PRODUCTS = "/products";
     String DOCUMENTS = "/documents";
     String SEARCH = "/search";
+    String LANGUAGES = "/languages";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";
 }
