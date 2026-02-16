@@ -48,7 +48,7 @@ public class StoreUserGroupModel extends CodeBasedItemModel {
             joinColumns = @JoinColumn(name = USER_GROUP_RELATION), inverseJoinColumns = @JoinColumn(name = UserModel.USER_RELATION))
     private Set<UserModel> users;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(name = "user_roles_user_groups",
             joinColumns = @JoinColumn(name = USER_GROUP_RELATION), inverseJoinColumns = @JoinColumn(name = UserRoleModel.USER_ROLE_RELATION))
     private Set<UserRoleModel> userRoles;
