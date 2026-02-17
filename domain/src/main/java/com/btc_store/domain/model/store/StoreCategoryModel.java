@@ -75,6 +75,9 @@ public class StoreCategoryModel extends StoreCodeBasedItemModel {
     })
     private Localized buttonText;
 
+    @Column(name = "button_link", length = 500)
+    private String buttonLink;
+
     @Column(name = "button_background_color", length = 50)
     private String buttonBackgroundColor;
 

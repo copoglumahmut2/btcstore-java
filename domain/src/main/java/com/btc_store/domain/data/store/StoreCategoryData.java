@@ -17,6 +17,7 @@ public class StoreCategoryData extends BaseData {
     private String textColor;
     private Boolean showButton;
     private LocalizeData buttonText;
+    private String buttonLink;
     private String buttonBackgroundColor;
     private String buttonBorderColor;
     private String buttonTextColor;
