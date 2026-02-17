@@ -17,4 +17,10 @@ public class StoreBannerData extends BaseData {
     private MediaData media;
     private Integer order;
     private Boolean active;
+    private Boolean showTitle;
+    private Boolean showSubtitle;
+    private Boolean showButton;
+    private String buttonBackgroundColor;
+    private String buttonBorderColor;
+    private String buttonTextColor;
 }

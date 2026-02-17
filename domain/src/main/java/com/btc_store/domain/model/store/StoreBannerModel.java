@@ -73,4 +73,22 @@ public class StoreBannerModel extends CodeBasedItemModel {
 
     @Column(nullable = false)
     private Boolean active = true;
+
+    @Column(name = "show_title")
+    private Boolean showTitle = true;
+
+    @Column(name = "show_subtitle")
+    private Boolean showSubtitle = true;
+
+    @Column(name = "show_button")
+    private Boolean showButton = true;
+
+    @Column(name = "button_background_color", length = 20)
+    private String buttonBackgroundColor;
+
+    @Column(name = "button_border_color", length = 20)
+    private String buttonBorderColor;
+
+    @Column(name = "button_text_color", length = 20)
+    private String buttonTextColor;
 }

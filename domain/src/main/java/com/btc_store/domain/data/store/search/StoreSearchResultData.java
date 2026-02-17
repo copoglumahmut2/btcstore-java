@@ -22,14 +22,17 @@ public class StoreSearchResultData extends BackBaseData {
     private LocalizeData title;
     private LocalizeData subtitle;
     private LocalizeData buttonText;
+    private String buttonLink;
     private MediaData media;
     private Integer order;
     private Boolean active;
+    private Boolean showTitle;
+    private Boolean showSubtitle;
+    private Boolean showButton;
     private Object name;
     private LocalizeData description;
     private String backgroundColor;
     private String textColor;
-    private Boolean showButton;
     private String buttonBackgroundColor;
     private String buttonBorderColor;
     private String buttonTextColor;
