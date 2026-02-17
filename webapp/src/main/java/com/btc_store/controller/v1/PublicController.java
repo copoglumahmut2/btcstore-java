@@ -5,6 +5,7 @@ import com.btc_store.domain.data.custom.restservice.ServiceResponseData;
 import com.btc_store.domain.enums.ProcessStatus;
 import com.btc_store.facade.BannerFacade;
 import com.btc_store.facade.CategoryFacade;
+import com.btc_store.facade.MenuLinkItemFacade;
 import com.btc_store.facade.PartnerFacade;
 import com.btc_store.facade.ReferenceFacade;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,6 +26,7 @@ public class PublicController {
     private final CategoryFacade categoryFacade;
     private final PartnerFacade partnerFacade;
     private final ReferenceFacade referenceFacade;
+    private final MenuLinkItemFacade menuLinkItemFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -95,6 +97,18 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(references);
+        return responseData;
+    }
+
+    @GetMapping("/menus")
+    @Operation(summary = "Get all active public menus with hierarchy")
+    public ServiceResponseData getPublicMenus(@Parameter(description = "IsoCode for validation message internalization") 
+                                              @RequestParam(required = false) String isoCode) {
+        log.info("Inside getPublicMenus of PublicController.");
+        var menus = menuLinkItemFacade.getMenusByType("PUBLIC");
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(menus);
         return responseData;
     }
 }
