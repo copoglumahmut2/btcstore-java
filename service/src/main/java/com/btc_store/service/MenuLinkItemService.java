@@ -16,6 +16,8 @@ public interface MenuLinkItemService {
 
     MenuLinkItemModel getMenuByCode(String code);
 
+    MenuLinkItemModel getMenuByCode(String code, com.btc_store.domain.model.custom.SiteModel siteModel);
+
     MenuLinkItemModel saveMenu(MenuLinkItemModel menuModel);
 
     void deleteMenu(String code);

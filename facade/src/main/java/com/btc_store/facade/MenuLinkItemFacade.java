@@ -12,6 +12,8 @@ public interface MenuLinkItemFacade {
 
     List<MenuLinkItemData> getMenusByType(String menuType);
 
+    List<MenuLinkItemData> getAllMenusByTypeFlat(String menuType);
+
     MenuLinkItemData getMenuByCode(String code);
 
     MenuLinkItemData saveMenu(MenuLinkItemData menuData);

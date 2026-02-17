@@ -1,7 +1,7 @@
 package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.MenuLinkItemData;
-import com.btc_store.domain.model.custom.BannerModel;
+import com.btc_store.domain.enums.MenuType;
 import com.btc_store.domain.model.custom.MenuLinkItemModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.facade.MenuLinkItemFacade;
@@ -71,6 +71,26 @@ public class MenuLinkItemFacadeImpl implements MenuLinkItemFacade {
                 .sorted(Comparator.comparing(MenuLinkItemData::getDisplayOrder))
                 .map(rootMenu -> buildMenuTree(rootMenu, menuMap))
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<MenuLinkItemData> getAllMenusByTypeFlat(String menuType) {
+        var siteModel = siteService.getCurrentSite();
+
+        MenuType menuTypeEnum;
+        try {
+            menuTypeEnum = MenuType.valueOf(menuType);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid menu type: " + menuType + ". Valid values are: ADMIN_PANEL, PUBLIC");
+        }
+
+        var menuModels = searchService.search(MenuLinkItemModel.class,
+                Map.of("site", siteModel,
+                       "menuType", menuTypeEnum,
+                       "active", true),
+                com.btc_store.domain.enums.SearchOperator.AND);
+
+        return List.of(modelMapper.map(menuModels, MenuLinkItemData[].class));
     }
     
     private MenuLinkItemData buildMenuTree(MenuLinkItemData menu, Map<String, MenuLinkItemData> menuMap) {

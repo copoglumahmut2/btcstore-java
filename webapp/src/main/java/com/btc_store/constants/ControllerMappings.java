@@ -19,6 +19,7 @@ public interface ControllerMappings {
     String DOCUMENTS = "/documents";
     String SEARCH = "/search";
     String LANGUAGES = "/languages";
+    String SITE_CONFIGURATION = "/site-configuration";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";
 }

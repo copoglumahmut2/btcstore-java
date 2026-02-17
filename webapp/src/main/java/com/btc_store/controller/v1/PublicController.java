@@ -27,6 +27,7 @@ public class PublicController {
     private final PartnerFacade partnerFacade;
     private final ReferenceFacade referenceFacade;
     private final MenuLinkItemFacade menuLinkItemFacade;
+    private final com.btc_store.facade.SiteConfigurationFacade siteConfigurationFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -109,6 +110,18 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(menus);
+        return responseData;
+    }
+
+    @GetMapping("/site-configuration")
+    @Operation(summary = "Get site configuration for public display")
+    public ServiceResponseData getSiteConfiguration(@Parameter(description = "IsoCode for validation message internalization") 
+                                                    @RequestParam(required = false) String isoCode) {
+        log.info("Inside getSiteConfiguration of PublicController.");
+        var config = siteConfigurationFacade.getSiteConfiguration();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(config);
         return responseData;
     }
 }

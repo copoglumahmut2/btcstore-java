@@ -61,6 +61,20 @@ public class MenuLinkItemController {
         return responseData;
     }
 
+    @GetMapping("/by-type/{menuType}/flat")
+    @Operation(summary = "Get all menus by type as flat list (no hierarchy)")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('MenuModel', @authorizationConstants.READ))")
+    public ServiceResponseData getAllMenusByTypeFlat(@Parameter(description = "Menu Type (ADMIN_PANEL or PUBLIC)") @PathVariable String menuType,
+                                                     @Parameter(description = "IsoCode for validation message internalization")
+                                                     @RequestParam(required = false) String isoCode) {
+        log.info("Inside getAllMenusByTypeFlat of MenuController with type: {}", menuType);
+        var menus = menuFacade.getAllMenusByTypeFlat(menuType);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(menus);
+        return responseData;
+    }
+
     @GetMapping(ControllerMappings.CODE)
     @Operation(summary = "Get menu by code")
     @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('MenuModel', @authorizationConstants.READ))")

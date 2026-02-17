@@ -71,6 +71,15 @@ public class MenuLinkItemServiceImpl implements MenuLinkItemService {
     }
 
     @Override
+    public MenuLinkItemModel getMenuByCode(String code, SiteModel siteModel) {
+        Assert.notNull(code, "Code must not be null");
+        Assert.notNull(siteModel, "Site must not be null");
+        var menuModel = menuDao.findByCodeAndSite(code, siteModel).orElse(null);
+        ServiceUtils.checkItemModelIsExist(menuModel, MenuLinkItemModel.class, siteModel, code);
+        return menuModel;
+    }
+
+    @Override
     public MenuLinkItemModel saveMenu(MenuLinkItemModel menuModel) {
         Assert.notNull(menuModel, "Menu model must not be null");
         return menuDao.save(menuModel);

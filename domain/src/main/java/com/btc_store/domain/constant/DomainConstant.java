@@ -30,4 +30,6 @@ public interface DomainConstant {
     String MENU_LINK_TABLE_NAME = "menulinkitems";
     String PRODUCT_TABLE_NAME = "products";
     String DOCUMENT_TABLE_NAME = "documents";
+    String SITE_CONFIGURATION_TABLE_NAME = "site_configurations";
+    String SITE_IDX = "_site_idx";
 }
