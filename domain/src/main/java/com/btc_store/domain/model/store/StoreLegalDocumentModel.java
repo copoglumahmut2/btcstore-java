@@ -2,11 +2,11 @@ package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.enums.LegalDocumentType;
+import com.btc_store.domain.model.custom.extend.CodeBasedItemModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.localize.Localized;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,7 +24,7 @@ import java.util.Date;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @FieldNameConstants
-public class StoreLegalDocumentModel extends StoreCodeBasedItemModel {
+public class StoreLegalDocumentModel extends CodeBasedItemModel {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -39,7 +39,6 @@ public class StoreLegalDocumentModel extends StoreCodeBasedItemModel {
     @Column(name = "code", unique = true, length = 255)
     private String code; // Otomatik oluşturulacak: documentType + "-" + version + "-" + timestamp
 
-    @NotEmpty(message = "{backValidation.legalDocument.title.notEmpty}")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "tr", column = @Column(name = "title_tr", length = 500)),
@@ -51,7 +50,6 @@ public class StoreLegalDocumentModel extends StoreCodeBasedItemModel {
     })
     private Localized title;
 
-    @NotEmpty(message = "{backValidation.legalDocument.content.notEmpty}")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "tr", column = @Column(name = "content_tr", columnDefinition = "TEXT")),
