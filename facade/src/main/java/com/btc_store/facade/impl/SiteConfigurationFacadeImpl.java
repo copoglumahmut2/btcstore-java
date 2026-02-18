@@ -2,9 +2,10 @@ package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.SiteConfigurationData;
 import com.btc_store.domain.enums.MediaCategory;
+import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.MenuLinkItemModel;
 import com.btc_store.domain.model.custom.SiteConfigurationModel;
-import com.btc_store.domain.model.custom.MediaModel;
+import com.btc_store.domain.model.custom.localize.Localized;
 import com.btc_store.facade.SiteConfigurationFacade;
 import com.btc_store.service.*;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +38,21 @@ public class SiteConfigurationFacadeImpl implements SiteConfigurationFacade {
         var configModel = siteConfigurationService.getSiteConfiguration(siteModel);
         
         if (Objects.isNull(configModel)) {
+            log.info("SiteConfiguration model is null for site: {}", siteModel.getCode());
             return new SiteConfigurationData();
         }
         
-        return modelMapper.map(configModel, SiteConfigurationData.class);
+        log.info("SiteConfiguration model found - topBannerEnabled: {}, topBannerText: {}", 
+                configModel.getTopBannerEnabled(), 
+                configModel.getTopBannerText());
+        
+        var data = modelMapper.map(configModel, SiteConfigurationData.class);
+        
+        log.info("SiteConfiguration data mapped - topBannerEnabled: {}, topBannerText: {}", 
+                data.getTopBannerEnabled(), 
+                data.getTopBannerText());
+        
+        return data;
     }
 
     @Override
@@ -68,6 +80,21 @@ public class SiteConfigurationFacadeImpl implements SiteConfigurationFacade {
         configModel.setFooterEmail(siteConfigurationData.getFooterEmail());
         configModel.setFooterPhone(siteConfigurationData.getFooterPhone());
         configModel.setFooterAddress(siteConfigurationData.getFooterAddress());
+
+        // Top Banner fields
+        configModel.setTopBannerEnabled(siteConfigurationData.getTopBannerEnabled());
+        configModel.setTopBannerBgColor(siteConfigurationData.getTopBannerBgColor());
+        configModel.setTopBannerTextColor(siteConfigurationData.getTopBannerTextColor());
+        configModel.setTopBannerLink(siteConfigurationData.getTopBannerLink());
+
+        // ModelMapper LocalizeData -> Localized mapping
+        if (Objects.nonNull(siteConfigurationData.getTopBannerText())) {
+            var localizedText = modelMapper.map(siteConfigurationData.getTopBannerText(),
+                    Localized.class);
+            configModel.setTopBannerText(localizedText);
+        } else {
+            configModel.setTopBannerText(null);
+        }
 
         boolean hasNewHeaderLogo = Objects.nonNull(headerLogoFile) && !headerLogoFile.isEmpty();
         if (hasNewHeaderLogo) {

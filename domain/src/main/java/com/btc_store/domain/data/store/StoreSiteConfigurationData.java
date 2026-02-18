@@ -1,6 +1,7 @@
 package com.btc_store.domain.data.store;
 
 import com.btc_store.domain.data.custom.MenuLinkItemData;
+import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import lombok.Data;
@@ -20,4 +21,11 @@ public class StoreSiteConfigurationData extends BackBaseData {
     private String footerPhone;
     private String footerAddress;
     private Set<MenuLinkItemData> footerMenus;
+
+    // Top Banner Fields
+    private Boolean topBannerEnabled;
+    private LocalizeData topBannerText;
+    private String topBannerBgColor;
+    private String topBannerTextColor;
+    private String topBannerLink;
 }
