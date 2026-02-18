@@ -35,4 +35,5 @@ public interface DomainConstant {
     String CALLREQUESTMODEL_TABLE_NAME = "call_requests";
     String CALLREQUESTHISTORYMODEL_TABLE_NAME = "call_request_histories";
     String EMAILTEMPLATEMODEL_TABLE_NAME = "email_templates";
+    String LEGAL_DOCUMENT_TABLE_NAME = "legal_documents";
 }
