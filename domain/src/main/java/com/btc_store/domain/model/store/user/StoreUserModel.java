@@ -60,7 +60,7 @@ public class StoreUserModel extends CodeBasedItemModel {
 
     private String description;
 
-    private boolean active;
+    private Boolean active = true;
 
     private Boolean deleted = false;
 

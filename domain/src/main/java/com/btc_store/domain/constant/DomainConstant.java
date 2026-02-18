@@ -32,4 +32,7 @@ public interface DomainConstant {
     String DOCUMENT_TABLE_NAME = "documents";
     String SITE_CONFIGURATION_TABLE_NAME = "site_configurations";
     String SITE_IDX = "_site_idx";
+    String CALLREQUESTMODEL_TABLE_NAME = "call_requests";
+    String CALLREQUESTHISTORYMODEL_TABLE_NAME = "call_request_histories";
+    String EMAILTEMPLATEMODEL_TABLE_NAME = "email_templates";
 }

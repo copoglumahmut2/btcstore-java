@@ -22,5 +22,14 @@ public interface ControllerMappings {
     String SITE_CONFIGURATION = "/site-configuration";
     String PAGE = "/{page}";
     String QUERY_SEARCH = "/query-search";
+    String CALL_REQUESTS = "/call-requests";
+    String EMAIL_TEMPLATES = "/email-templates";
+    String ID = "/{id}";
+    String HISTORY = "/history";
+    String ASSIGN_GROUP = "/assign-group";
+    String ASSIGN_USER = "/assign-user";
+    String UPDATE_STATUS = "/update-status";
+    String MY_REQUESTS = "/my-requests";
+    String PUBLIC = "/public";
 }
 

@@ -1,9 +1,11 @@
 package com.btc_store.controller.v1;
 
 import com.btc_store.constants.ControllerMappings;
+import com.btc_store.domain.data.custom.CallRequestData;
 import com.btc_store.domain.data.custom.restservice.ServiceResponseData;
 import com.btc_store.domain.enums.ProcessStatus;
 import com.btc_store.facade.BannerFacade;
+import com.btc_store.facade.CallRequestFacade;
 import com.btc_store.facade.CategoryFacade;
 import com.btc_store.facade.MenuLinkItemFacade;
 import com.btc_store.facade.PartnerFacade;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -28,6 +31,7 @@ public class PublicController {
     private final ReferenceFacade referenceFacade;
     private final MenuLinkItemFacade menuLinkItemFacade;
     private final com.btc_store.facade.SiteConfigurationFacade siteConfigurationFacade;
+    private final CallRequestFacade callRequestFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -122,6 +126,20 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(config);
+        return responseData;
+    }
+    
+    @PostMapping("/call-requests")
+    @Operation(summary = "Create call request (Public - No authentication required)")
+    public ServiceResponseData createCallRequest(@Parameter(description = "Call request data to create")
+                                                 @Validated @RequestBody CallRequestData callRequestData,
+                                                 @Parameter(description = "IsoCode for validation message internalization")
+                                                 @RequestParam(required = false) String isoCode) {
+        log.info("Inside createCallRequest of PublicController.");
+        var savedCallRequest = callRequestFacade.createCallRequest(callRequestData);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(savedCallRequest);
         return responseData;
     }
 }

@@ -47,4 +47,9 @@ public class UserGroupServiceImpl implements UserGroupService {
     public Set<UserGroupModel> getUserGroupModelsByCodeIn(Set<String> codes, SiteModel siteModel) {
         return userGroupDao.getUserGroupModelsByCodeInAndSite(codes, siteModel);
     }
+    
+    @Override
+    public UserGroupModel getUserGroupByCode(String code) {
+        return userGroupDao.findByCode(code).orElse(null);
+    }
 }

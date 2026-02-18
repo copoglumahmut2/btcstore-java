@@ -10,4 +10,5 @@ public interface UserGroupService {
     UserGroupModel getUserGroupModelForBack(String code, SiteModel siteModel);
     Set<UserGroupModel> getUserGroupModels(SiteModel siteModel);
     Set<UserGroupModel> getUserGroupModelsByCodeIn(Set<String> codes, SiteModel siteModel);
+    UserGroupModel getUserGroupByCode(String code);
 }

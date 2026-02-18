@@ -205,7 +205,7 @@ public class UserServiceImpl implements UserService {
             log.info("User: [{}] found in the database.", username);
         }
 
-        if (BooleanUtils.isFalse(user.isActive())) {
+        if (BooleanUtils.isFalse(user.getActive())) {
             throw new UserNotActiveException(String.format("%s username is not active", username),
                     MessageConstant.USER_NOT_ACTIVE_MESSAGE, new Object[]{username});
         }
@@ -267,5 +267,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public Set<UserModel> getUsersByUsernames(Set<String> usernames, SiteModel siteModel) {
         return userDao.getUserModelByUsernameInAndSite(usernames, siteModel);
+    }
+
+    @Override
+    public UserModel getUserModelById(Long userId) {
+        return userDao.findById(userId).orElse(null);
+    }
+    
+    @Override
+    public List<UserModel> getUsersByGroupCode(String groupCode) {
+        UserGroupModel userGroup = userGroupService.getUserGroupByCode(groupCode);
+        if (userGroup == null || CollectionUtils.isEmpty(userGroup.getUsers())) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(userGroup.getUsers());
     }
 }

@@ -4,6 +4,7 @@ import com.btc_store.domain.model.custom.SiteModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface UserGroupDao extends JpaRepository<UserGroupModel, Long> {
@@ -13,4 +14,6 @@ public interface UserGroupDao extends JpaRepository<UserGroupModel, Long> {
     Set<UserGroupModel> getBySite(SiteModel site);
 
     Set<UserGroupModel> getUserGroupModelsByCodeInAndSite(Set<String> codes, SiteModel site);
+    
+    Optional<UserGroupModel> findByCode(String code);
 }

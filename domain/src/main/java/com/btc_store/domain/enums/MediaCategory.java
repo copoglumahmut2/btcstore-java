@@ -13,7 +13,8 @@ public enum MediaCategory {
     PARTNER("partner_cms"),
     USER("user_cms"),
     PRODUCT("product_cms"),
-    LOGO("logo_cms");
+    LOGO("logo_cms"),
+    OTHER("other_cms");
 
     private String value;
 }

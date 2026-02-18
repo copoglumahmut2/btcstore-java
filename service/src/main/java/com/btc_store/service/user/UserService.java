@@ -47,4 +47,8 @@ public interface UserService extends UserDetailsService {
     Set<String> getCurrentUserAuthorities();
 
     Set<UserModel> getUsersByUsernames(Set<String> usernames, SiteModel siteModel);
+    
+    UserModel getUserModelById(Long userId);
+    
+    java.util.List<UserModel> getUsersByGroupCode(String groupCode);
 }
