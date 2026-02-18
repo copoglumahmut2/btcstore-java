@@ -451,6 +451,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             event.put("subject", processedSubject);
             event.put("body", processedBody);
             event.put("recipients", userEmails); // Generic field name
+            event.put("siteCode", callRequestModel.getSite().getCode());
             event.put("source", "CallRequest"); // Hangi modülden geldiğini belirt
             event.put("sourceId", callRequestModel.getId());
             
@@ -488,12 +489,41 @@ public class CallRequestServiceImpl implements CallRequestService {
             
             var siteModel = siteService.getCurrentSite();
             
-            // Get email template from database
-            String templateCode = "call_request_notification";
+            // Get email template from database - kullanıcıya atama için özel template
+            String templateCode = "call_request_assigned_to_user";
             var emailTemplate = emailTemplateService.getEmailTemplateByCode(templateCode, callRequestModel.getSite());
             
             // Extract variables using generic template service
             Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
+            
+            // Add user-specific variables
+            variables.put("assignedUserName", user.getUsername());
+            
+            // Get current user who made the assignment
+            try {
+                var currentUser = userService.getCurrentUser();
+                variables.put("assignedBy", currentUser.getUsername());
+            } catch (Exception e) {
+                variables.put("assignedBy", "System");
+            }
+            
+            // Add additional variables not in model
+            variables.put("priority", "MEDIUM"); // TODO: Add priority field to CallRequestModel
+            variables.put("priorityClass", "medium");
+            
+            // Format created date if exists
+            if (callRequestModel.getCreatedDate() != null) {
+                variables.put("createdDate", new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(callRequestModel.getCreatedDate()));
+            } else {
+                variables.put("createdDate", "");
+            }
+            
+            // Add call request URL (adjust base URL as needed)
+            String baseUrl = parameterService.getValueByCode("frontend.base.url", callRequestModel.getSite());
+            if (baseUrl == null || baseUrl.isEmpty()) {
+                baseUrl = "http://localhost:3000"; // Fallback
+            }
+            variables.put("callRequestUrl", baseUrl + "/call-requests/" + callRequestModel.getId());
             
             // Process template with variables
             String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
@@ -504,6 +534,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             event.put("subject", processedSubject);
             event.put("body", processedBody);
             event.put("recipients", List.of(user.getEmail()));
+            event.put("siteCode", callRequestModel.getSite().getCode());
             event.put("source", "CallRequest");
             event.put("sourceId", callRequestModel.getId());
             
@@ -514,7 +545,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Email gönderildi: " + user.getEmail(),
+                    "Kullanıcıya atama maili gönderildi: " + user.getEmail(),
                     null,
                     "System",
                     null,
@@ -523,7 +554,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                     siteModel
             );
             
-            log.info("Call request event sent to user: {} - {} - {}", user.getUsername(), callRequestModel.getId(), eventType);
+            log.info("Call request assignment email sent to user: {} - {} - {}", user.getUsername(), callRequestModel.getId(), eventType);
         } catch (Exception e) {
             log.error("Call request event kullanıcıya gönderilemedi: {}", e.getMessage(), e);
         }
@@ -551,12 +582,41 @@ public class CallRequestServiceImpl implements CallRequestService {
                 return;
             }
             
-            // Get email template from database
-            String templateCode = "call_request_notification";
+            // Get email template from database - gruba atama için özel template
+            String templateCode = "call_request_assigned_to_group";
             var emailTemplate = emailTemplateService.getEmailTemplateByCode(templateCode, callRequestModel.getSite());
             
             // Extract variables using generic template service
             Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
+            
+            // Add group-specific variables
+            variables.put("groupName", groupCode);
+            
+            // Get current user who made the assignment
+            try {
+                var currentUser = userService.getCurrentUser();
+                variables.put("assignedBy", currentUser.getUsername());
+            } catch (Exception e) {
+                variables.put("assignedBy", "System");
+            }
+            
+            // Add additional variables not in model
+            variables.put("priority", "MEDIUM"); // TODO: Add priority field to CallRequestModel
+            variables.put("priorityClass", "medium");
+            
+            // Format created date if exists
+            if (callRequestModel.getCreatedDate() != null) {
+                variables.put("createdDate", new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(callRequestModel.getCreatedDate()));
+            } else {
+                variables.put("createdDate", "");
+            }
+            
+            // Add call request URL (adjust base URL as needed)
+            String baseUrl = parameterService.getValueByCode("site.backoffice.url", callRequestModel.getSite());
+            if (baseUrl == null || baseUrl.isEmpty()) {
+                baseUrl = "http://localhost:3000"; // Fallback
+            }
+            variables.put("callRequestUrl", baseUrl + "/call-requests/" + callRequestModel.getId());
             
             // Process template with variables
             String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
@@ -567,6 +627,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             event.put("subject", processedSubject);
             event.put("body", processedBody);
             event.put("recipients", userEmails);
+            event.put("siteCode", callRequestModel.getSite().getCode());
             event.put("source", "CallRequest");
             event.put("sourceId", callRequestModel.getId());
             
@@ -577,7 +638,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Email gönderildi (" + groupCode + " grubu): " + String.join(", ", userEmails),
+                    "Gruba atama maili gönderildi (" + groupCode + " grubu): " + String.join(", ", userEmails),
                     null,
                     "System",
                     null,
@@ -586,7 +647,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                     siteModel
             );
             
-            log.info("Call request event sent to group: {} - {} users - {} - {}", groupCode, userEmails.size(), callRequestModel.getId(), eventType);
+            log.info("Call request assignment email sent to group: {} - {} users - {} - {}", groupCode, userEmails.size(), callRequestModel.getId(), eventType);
         } catch (Exception e) {
             log.error("Call request event gruba gönderilemedi: {}", e.getMessage(), e);
         }
