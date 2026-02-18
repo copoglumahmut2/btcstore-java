@@ -7,6 +7,7 @@ import com.btc_store.service.EmailTemplateService;
 import com.btc_store.service.ModelService;
 import com.btc_store.service.SearchService;
 import com.btc_store.service.SiteService;
+import com.btc_store.service.util.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -57,7 +58,7 @@ public class EmailTemplateFacadeImpl implements EmailTemplateFacade {
         
         if (isNew) {
             templateModel = modelMapper.map(emailTemplateData, EmailTemplateModel.class);
-            templateModel.setCode(UUID.randomUUID().toString());
+            ServiceUtils.generateCodeIfMissing(templateModel);
             templateModel.setSite(siteModel);
         } else {
             templateModel = searchService.searchByCodeAndSite(
