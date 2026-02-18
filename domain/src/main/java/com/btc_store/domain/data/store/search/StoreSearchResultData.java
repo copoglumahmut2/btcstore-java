@@ -8,10 +8,13 @@ import com.btc_store.domain.data.custom.user.UserData;
 import com.btc_store.domain.data.extend.BaseLocalizedDescriptionData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.DataType;
+import com.btc_store.domain.enums.LegalDocumentType;
 import com.btc_store.domain.enums.ParameterType;
+import com.btc_store.domain.model.custom.localize.Localized;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -58,4 +61,9 @@ public class StoreSearchResultData extends BackBaseData {
     private MediaData mainImage;
     private List<MediaData> medias;
     private List<ProductData> products;
+    private LegalDocumentType documentType;
+    private LocalizeData shortText;
+    private Boolean isCurrentVersion;
+    private Date effectiveDate;
+    private String version;
 }

@@ -40,50 +40,41 @@ public class LegalDocumentFacadeImpl implements LegalDocumentFacade {
         LegalDocumentModel legalDocumentModel;
 
         if (legalDocumentData.isNew()) {
-            // Yeni kayıt - versiyon 1.0 ile başlar
             legalDocumentModel = modelMapper.map(legalDocumentData, LegalDocumentModel.class);
             legalDocumentModel.setVersion("1.0");
             legalDocumentModel.setIsCurrentVersion(true);
-            
-            // Kod otomatik oluştur
+
             String code = generateCode(legalDocumentData.getDocumentType().name(), "1.0");
             legalDocumentModel.setCode(code);
             legalDocumentModel.setSite(siteModel);
-            
-            // Aynı tipteki diğer dokümanları current olmaktan çıkar
+
             updateOtherDocumentsCurrentVersion(legalDocumentModel.getDocumentType(), siteModel, null);
         } else {
-            // Güncelleme - içerik değişikliğini kontrol et
             legalDocumentModel = searchService.searchByCodeAndSite(LegalDocumentModel.class, legalDocumentData.getCode(), siteModel);
             
             boolean contentChanged = hasContentChanged(legalDocumentModel, legalDocumentData);
             
             if (contentChanged) {
-                // İçerik değişti - yeni versiyon oluştur
                 String newVersion = incrementVersion(legalDocumentModel.getVersion());
-                
-                // Yeni kayıt olarak oluştur
+
                 LegalDocumentModel newVersionModel = new LegalDocumentModel();
                 modelMapper.map(legalDocumentData, newVersionModel);
                 newVersionModel.setId(null);
                 newVersionModel.setVersion(newVersion);
                 newVersionModel.setIsCurrentVersion(true);
                 newVersionModel.setSite(siteModel);
-                
-                // Yeni kod oluştur
+
                 String newCode = generateCode(legalDocumentData.getDocumentType().name(), newVersion);
                 newVersionModel.setCode(newCode);
-                
-                // Eski versiyonu current olmaktan çıkar
+
                 legalDocumentModel.setIsCurrentVersion(false);
+                legalDocumentModel.setActive(false);
                 modelService.save(legalDocumentModel);
-                
-                // Aynı tipteki diğer dokümanları da current olmaktan çıkar
+
                 updateOtherDocumentsCurrentVersion(newVersionModel.getDocumentType(), siteModel, legalDocumentModel.getId());
                 
                 legalDocumentModel = newVersionModel;
             } else {
-                // İçerik değişmedi - sadece meta bilgileri güncelle (effectiveDate, active vb.)
                 legalDocumentModel.setEffectiveDate(legalDocumentData.getEffectiveDate());
                 legalDocumentModel.setActive(legalDocumentData.getActive());
             }
@@ -122,7 +113,7 @@ public class LegalDocumentFacadeImpl implements LegalDocumentFacade {
     }
     
     /**
-     * Aynı tipteki diğer dokümanları current olmaktan çıkar
+     * Aynı tipteki diğer dokümanları current olmaktan çıkar ve pasife al
      */
     private void updateOtherDocumentsCurrentVersion(com.btc_store.domain.enums.LegalDocumentType documentType, 
                                                      com.btc_store.domain.model.store.StoreSiteModel siteModel,
@@ -136,6 +127,7 @@ public class LegalDocumentFacadeImpl implements LegalDocumentFacade {
             if (!Objects.equals(existingDoc.getId(), excludeId) && 
                 Boolean.TRUE.equals(existingDoc.getIsCurrentVersion())) {
                 existingDoc.setIsCurrentVersion(false);
+                existingDoc.setActive(false);
                 modelService.save(existingDoc);
             }
         }

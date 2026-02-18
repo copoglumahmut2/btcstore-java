@@ -36,9 +36,6 @@ public class StoreLegalDocumentModel extends CodeBasedItemModel {
     @Column(name = "document_type", nullable = false, length = 50)
     private LegalDocumentType documentType;
 
-    @Column(name = "code", unique = true, length = 255)
-    private String code; // Otomatik oluşturulacak: documentType + "-" + version + "-" + timestamp
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "tr", column = @Column(name = "title_tr", length = 500)),
