@@ -81,6 +81,11 @@ public class CallRequestServiceImpl implements CallRequestService {
                     null,
                     siteModel
             );
+            
+            // Send email notification to all assigned groups
+            for (var group : saved.getAssignedGroups()) {
+                publishCallRequestEventToGroup(saved, group.getCode(), "AUTO_ASSIGNED_TO_GROUP");
+            }
         }
         
         log.info("Call request oluşturuldu: {}", saved.getId());
@@ -368,9 +373,6 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        // Send email notification
-        publishCallRequestEvent(callRequest, "CLOSED");
-        
         log.info("Call request {} kapatıldı: {} tarafından", callRequestId, closedBy);
     }
     
@@ -459,7 +461,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Email gönderildi: " + userEmails.size() + " alıcı",
+                    "Email gönderildi: " + String.join(", ", userEmails),
                     null,
                     "System",
                     null,
@@ -507,6 +509,19 @@ public class CallRequestServiceImpl implements CallRequestService {
             
             // Send to RabbitMQ
             rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
+            
+            // Create history for email sent
+            callRequestHistoryService.createHistory(
+                    callRequestModel,
+                    CallRequestActionType.EMAIL_SENT,
+                    "Email gönderildi: " + user.getEmail(),
+                    null,
+                    "System",
+                    null,
+                    null,
+                    null,
+                    siteModel
+            );
             
             log.info("Call request event sent to user: {} - {} - {}", user.getUsername(), callRequestModel.getId(), eventType);
         } catch (Exception e) {
@@ -557,6 +572,19 @@ public class CallRequestServiceImpl implements CallRequestService {
             
             // Send to RabbitMQ
             rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
+            
+            // Create history for email sent
+            callRequestHistoryService.createHistory(
+                    callRequestModel,
+                    CallRequestActionType.EMAIL_SENT,
+                    "Email gönderildi (" + groupCode + " grubu): " + String.join(", ", userEmails),
+                    null,
+                    "System",
+                    null,
+                    null,
+                    null,
+                    siteModel
+            );
             
             log.info("Call request event sent to group: {} - {} users - {} - {}", groupCode, userEmails.size(), callRequestModel.getId(), eventType);
         } catch (Exception e) {
