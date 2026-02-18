@@ -30,7 +30,6 @@ Görüşme talebi sistemi için 3 farklı email template'i bulunmaktadır:
 {{customerEmail}} - Müşteri e-postası
 {{priority}} - Öncelik seviyesi (şu an sabit: MEDIUM, gelecekte model'e eklenecek)
 {{priorityClass}} - CSS class için öncelik (high, medium, low)
-{{subject}} - Talep konusu
 {{message}} - Talep mesajı
 {{createdDate}} - Oluşturma tarihi (formatlanmış: dd.MM.yyyy HH:mm)
 {{assignedBy}} - Atamayı yapan kişi (manuel eklenir)
@@ -64,7 +63,6 @@ Görüşme talebi sistemi için 3 farklı email template'i bulunmaktadır:
 {{customerEmail}} - Müşteri e-postası
 {{priority}} - Öncelik seviyesi (şu an sabit: MEDIUM, gelecekte model'e eklenecek)
 {{priorityClass}} - CSS class için öncelik (high, medium, low)
-{{subject}} - Talep konusu
 {{message}} - Talep mesajı
 {{createdDate}} - Oluşturma tarihi (formatlanmış: dd.MM.yyyy HH:mm)
 {{assignedBy}} - Atamayı yapan kişi (manuel eklenir)

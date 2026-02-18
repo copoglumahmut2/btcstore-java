@@ -26,125 +26,28 @@ INSERT INTO email_templates (
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grup Ataması</title>
     <style>
-        body {
-            font-family: ''Segoe UI'', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .content {
-            padding: 30px;
-        }
-        .alert-box {
-            background-color: #e8f5e9;
-            border-left: 4px solid #4caf50;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        .alert-box p {
-            margin: 0;
-            color: #2e7d32;
-            font-weight: 500;
-        }
-        .info-section {
-            background-color: #f9f9f9;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .info-row {
-            display: flex;
-            padding: 10px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            font-weight: 600;
-            color: #555;
-            min-width: 140px;
-        }
-        .info-value {
-            color: #333;
-            flex: 1;
-        }
-        .priority-high {
-            color: #d32f2f;
-            font-weight: bold;
-        }
-        .priority-medium {
-            color: #f57c00;
-            font-weight: bold;
-        }
-        .priority-low {
-            color: #388e3c;
-            font-weight: bold;
-        }
-        .group-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin: 5px 0;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 20px;
-            font-weight: 600;
-            text-align: center;
-        }
-        .button:hover {
-            opacity: 0.9;
-        }
-        .footer {
-            background-color: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #777;
-        }
-        .icon {
-            display: inline-block;
-            margin-right: 8px;
-        }
-        .action-note {
-            background-color: #fff3e0;
-            border-left: 4px solid #ff9800;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
+        body { font-family: ''Segoe UI'', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px; }
+        .alert-box { background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .alert-box p { margin: 0; color: #2e7d32; font-weight: 500; }
+        .info-section { background-color: #f9f9f9; border-radius: 6px; padding: 20px; margin: 20px 0; }
+        .info-row { display: flex; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #555; min-width: 140px; }
+        .info-value { color: #333; flex: 1; }
+        .priority-urgent { color: #c62828; font-weight: bold; background-color: #ffebee; padding: 3px 8px; border-radius: 4px; }
+        .priority-high { color: #d32f2f; font-weight: bold; }
+        .priority-medium { color: #f57c00; font-weight: bold; }
+        .priority-low { color: #388e3c; font-weight: bold; }
+        .group-badge { display: inline-block; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; margin: 5px 0; }
+        .button { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: 600; text-align: center; }
+        .button:hover { opacity: 0.9; }
+        .footer { background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #777; }
+        .icon { display: inline-block; margin-right: 8px; }
+        .action-note { background-color: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; margin: 20px 0; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -152,19 +55,15 @@ INSERT INTO email_templates (
         <div class="header">
             <h1>👥 Gruba Yeni Atama</h1>
         </div>
-        
         <div class="content">
             <div class="alert-box">
                 <p><span class="icon">🎯</span> Grubunuza yeni bir görüşme talebi atandı!</p>
             </div>
-            
             <p>Merhaba <strong>{{groupName}}</strong> Ekibi,</p>
             <p>Aşağıdaki görüşme talebi grubunuza atanmıştır. Lütfen ekip içinde uygun kişiye yönlendirme yapınız.</p>
-            
             <div style="text-align: center; margin: 20px 0;">
                 <span class="group-badge">{{groupName}}</span>
             </div>
-            
             <div class="info-section">
                 <div class="info-row">
                     <div class="info-label">📋 Talep No:</div>
@@ -187,10 +86,6 @@ INSERT INTO email_templates (
                     <div class="info-value priority-{{priorityClass}}">{{priority}}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">📝 Konu:</div>
-                    <div class="info-value">{{subject}}</div>
-                </div>
-                <div class="info-row">
                     <div class="info-label">💬 Mesaj:</div>
                     <div class="info-value">{{message}}</div>
                 </div>
@@ -203,27 +98,21 @@ INSERT INTO email_templates (
                     <div class="info-value">{{assignedBy}}</div>
                 </div>
             </div>
-            
             <div class="action-note">
                 <p style="margin: 0; color: #e65100;">
                     <strong>⚠️ Önemli:</strong> Bu talep grubunuza atanmıştır. Lütfen ekip içinde uygun bir kişiye atama yaparak süreci başlatınız.
                 </p>
             </div>
-            
-            <p style="margin-top: 25px;">
-                <strong>Sonraki Adımlar:</strong>
-            </p>
+            <p style="margin-top: 25px;"><strong>Sonraki Adımlar:</strong></p>
             <ul style="color: #555;">
                 <li>Talebi değerlendirin</li>
                 <li>Uygun ekip üyesine atama yapın</li>
                 <li>Müşteri ile iletişim sürecini başlatın</li>
             </ul>
-            
             <div style="text-align: center;">
                 <a href="{{callRequestUrl}}" class="button">Görüşmeyi Görüntüle</a>
             </div>
         </div>
-        
         <div class="footer">
             <p>Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıtlamayınız.</p>
             <p>&copy; 2024 BTC Store - Tüm hakları saklıdır.</p>
@@ -236,6 +125,7 @@ INSERT INTO email_templates (
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
+
 
 -- 2. Kullanıcıya Atama Template'i
 INSERT INTO email_templates (
@@ -262,108 +152,26 @@ INSERT INTO email_templates (
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Görüşme Ataması</title>
     <style>
-        body {
-            font-family: ''Segoe UI'', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .content {
-            padding: 30px;
-        }
-        .alert-box {
-            background-color: #e8f4fd;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        .alert-box p {
-            margin: 0;
-            color: #1976D2;
-            font-weight: 500;
-        }
-        .info-section {
-            background-color: #f9f9f9;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .info-row {
-            display: flex;
-            padding: 10px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            font-weight: 600;
-            color: #555;
-            min-width: 140px;
-        }
-        .info-value {
-            color: #333;
-            flex: 1;
-        }
-        .priority-high {
-            color: #d32f2f;
-            font-weight: bold;
-        }
-        .priority-medium {
-            color: #f57c00;
-            font-weight: bold;
-        }
-        .priority-low {
-            color: #388e3c;
-            font-weight: bold;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 20px;
-            font-weight: 600;
-            text-align: center;
-        }
-        .button:hover {
-            opacity: 0.9;
-        }
-        .footer {
-            background-color: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #777;
-        }
-        .icon {
-            display: inline-block;
-            margin-right: 8px;
-        }
+        body { font-family: ''Segoe UI'', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px; }
+        .alert-box { background-color: #e8f4fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .alert-box p { margin: 0; color: #1976D2; font-weight: 500; }
+        .info-section { background-color: #f9f9f9; border-radius: 6px; padding: 20px; margin: 20px 0; }
+        .info-row { display: flex; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #555; min-width: 140px; }
+        .info-value { color: #333; flex: 1; }
+        .priority-urgent { color: #c62828; font-weight: bold; background-color: #ffebee; padding: 3px 8px; border-radius: 4px; }
+        .priority-high { color: #d32f2f; font-weight: bold; }
+        .priority-medium { color: #f57c00; font-weight: bold; }
+        .priority-low { color: #388e3c; font-weight: bold; }
+        .button { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: 600; text-align: center; }
+        .button:hover { opacity: 0.9; }
+        .footer { background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #777; }
+        .icon { display: inline-block; margin-right: 8px; }
     </style>
 </head>
 <body>
@@ -371,15 +179,12 @@ INSERT INTO email_templates (
         <div class="header">
             <h1>🎯 Yeni Görüşme Ataması</h1>
         </div>
-        
         <div class="content">
             <div class="alert-box">
                 <p><span class="icon">👤</span> Sayın {{assignedUserName}}, size yeni bir görüşme atandı!</p>
             </div>
-            
             <p>Merhaba,</p>
             <p>Aşağıdaki görüşme talebinin takibi için size atama yapılmıştır. Lütfen en kısa sürede değerlendirmenizi yapınız.</p>
-            
             <div class="info-section">
                 <div class="info-row">
                     <div class="info-label">📋 Talep No:</div>
@@ -402,10 +207,6 @@ INSERT INTO email_templates (
                     <div class="info-value priority-{{priorityClass}}">{{priority}}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">📝 Konu:</div>
-                    <div class="info-value">{{subject}}</div>
-                </div>
-                <div class="info-row">
                     <div class="info-label">💬 Mesaj:</div>
                     <div class="info-value">{{message}}</div>
                 </div>
@@ -418,21 +219,16 @@ INSERT INTO email_templates (
                     <div class="info-value">{{assignedBy}}</div>
                 </div>
             </div>
-            
-            <p style="margin-top: 25px;">
-                <strong>Yapmanız Gerekenler:</strong>
-            </p>
+            <p style="margin-top: 25px;"><strong>Yapmanız Gerekenler:</strong></p>
             <ul style="color: #555;">
                 <li>Müşteri ile iletişime geçin</li>
                 <li>Görüşme detaylarını sisteme kaydedin</li>
                 <li>Durumu güncel tutun</li>
             </ul>
-            
             <div style="text-align: center;">
                 <a href="{{callRequestUrl}}" class="button">Görüşmeyi Görüntüle</a>
             </div>
         </div>
-        
         <div class="footer">
             <p>Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıtlamayınız.</p>
             <p>&copy; 2024 BTC Store - Tüm hakları saklıdır.</p>
@@ -451,9 +247,6 @@ UPDATE email_templates
 SET template_name = 'Genel Görüşme Bildirimi',
     subject = 'Yeni Görüşme Talebi - #{{id}}'
 WHERE code = 'call_request_notification';
-
-COMMIT;
-
 
 -- Frontend base URL parametresi (eğer yoksa)
 INSERT INTO parameters (

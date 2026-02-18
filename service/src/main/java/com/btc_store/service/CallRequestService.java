@@ -1,5 +1,6 @@
 package com.btc_store.service;
 
+import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestModel;
 import com.btc_store.domain.model.custom.SiteModel;
@@ -31,6 +32,8 @@ public interface CallRequestService {
     void assignToUsers(Long callRequestId, List<Long> userIds);
     
     void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment);
+    
+    void updatePriority(Long callRequestId, CallRequestPriority newPriority);
     
     void closeCallRequest(Long callRequestId, String comment);
     

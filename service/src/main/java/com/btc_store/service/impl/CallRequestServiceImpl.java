@@ -1,6 +1,7 @@
 package com.btc_store.service.impl;
 
 import com.btc_store.domain.enums.CallRequestActionType;
+import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestModel;
 import com.btc_store.domain.model.custom.SiteModel;
@@ -43,6 +44,53 @@ public class CallRequestServiceImpl implements CallRequestService {
     private static final String EMAIL_EXCHANGE = "email.exchange";
     private static final String EMAIL_ROUTING_KEY = "email.routing.key";
     
+    /**
+     * Get priority label and class for email templates
+     * Supports multiple languages: tr, en, de, fr, es
+     */
+    private String[] getPriorityInfo(CallRequestPriority priority, SiteModel site) {
+        String locale = "tr"; // Default to Turkish
+        
+        // Get locale from site's language
+        if (site != null && site.getLanguage() != null && site.getLanguage().getCode() != null) {
+            locale = site.getLanguage().getCode();
+        }
+        
+        String label = switch (priority) {
+            case LOW -> switch (locale) {
+                case "en" -> "Low";
+                case "de" -> "Niedrig";
+                case "fr" -> "Faible";
+                case "es" -> "Bajo";
+                default -> "Düşük"; // Turkish
+            };
+            case MEDIUM -> switch (locale) {
+                case "en" -> "Medium";
+                case "de" -> "Mittel";
+                case "fr" -> "Moyen";
+                case "es" -> "Medio";
+                default -> "Orta"; // Turkish
+            };
+            case HIGH -> switch (locale) {
+                case "en" -> "High";
+                case "de" -> "Hoch";
+                case "fr" -> "Élevé";
+                case "es" -> "Alto";
+                default -> "Yüksek"; // Turkish
+            };
+            case URGENT -> switch (locale) {
+                case "en" -> "Urgent";
+                case "de" -> "Dringend";
+                case "fr" -> "Urgent";
+                case "es" -> "Urgente";
+                default -> "Acil"; // Turkish
+            };
+        };
+        
+        String cssClass = priority.name().toLowerCase();
+        return new String[]{label, cssClass};
+    }
+    
     @Override
     @Transactional
     public CallRequestModel createCallRequest(CallRequestModel callRequestModel) {
@@ -82,10 +130,12 @@ public class CallRequestServiceImpl implements CallRequestService {
                     siteModel
             );
             
-            // Send email notification to all assigned groups
-            for (var group : saved.getAssignedGroups()) {
-                publishCallRequestEventToGroup(saved, group.getCode(), "AUTO_ASSIGNED_TO_GROUP");
-            }
+            // Genel bildirim mailini gönder (atama maili değil)
+            // Bu mail call.center.group parametresindeki gruplara gider
+            // History'de hangi maillere gönderildiği görünecek
+            publishCallRequestEvent(saved, "CREATED");
+            
+            log.info("Call request {} otomatik olarak gruplara atandı: {} (Atama maili gönderilmedi, genel bildirim gönderildi)", saved.getId(), groupNames);
         }
         
         log.info("Call request oluşturuldu: {}", saved.getId());
@@ -416,6 +466,49 @@ public class CallRequestServiceImpl implements CallRequestService {
     }
     
     @Override
+    @Transactional
+    public void updatePriority(Long callRequestId, CallRequestPriority newPriority) {
+        var siteModel = siteService.getCurrentSite();
+        CallRequestModel callRequest = getCallRequestById(callRequestId);
+        
+        // Check if request is closed
+        if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
+            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+        }
+        
+        CallRequestPriority oldPriority = callRequest.getPriority();
+        
+        // Get current user
+        String updatedBy = "System";
+        Long updatedByUserId = null;
+        try {
+            var currentUser = userService.getCurrentUser();
+            updatedBy = currentUser.getUsername();
+            updatedByUserId = currentUser.getId();
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        
+        callRequest.setPriority(newPriority);
+        modelService.save(callRequest);
+        
+        // Create history
+        callRequestHistoryService.createHistory(
+                callRequest,
+                CallRequestActionType.PRIORITY_CHANGED,
+                "Öncelik değişti: " + oldPriority + " -> " + newPriority + " (Güncelleyen: " + updatedBy + ")",
+                updatedByUserId,
+                updatedBy,
+                null,
+                null,
+                null,
+                siteModel
+        );
+        
+        log.info("Call request {} önceliği güncellendi: {} -> {} (Güncelleyen: {})", callRequestId, oldPriority, newPriority, updatedBy);
+    }
+    
+    @Override
     public void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType) {
         try {
             var siteModel = siteService.getCurrentSite();
@@ -441,6 +534,18 @@ public class CallRequestServiceImpl implements CallRequestService {
             
             // Extract variables using generic template service
             Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
+            
+            // Add priority translation based on site locale
+            String[] priorityInfo = getPriorityInfo(callRequestModel.getPriority(), callRequestModel.getSite());
+            variables.put("priority", priorityInfo[0]);
+            variables.put("priorityClass", priorityInfo[1]);
+            
+            // Format created date if exists
+            if (callRequestModel.getCreatedDate() != null) {
+                variables.put("createdDate", new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(callRequestModel.getCreatedDate()));
+            } else {
+                variables.put("createdDate", "");
+            }
             
             // Process template with variables
             String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
@@ -507,9 +612,10 @@ public class CallRequestServiceImpl implements CallRequestService {
                 variables.put("assignedBy", "System");
             }
             
-            // Add additional variables not in model
-            variables.put("priority", "MEDIUM"); // TODO: Add priority field to CallRequestModel
-            variables.put("priorityClass", "medium");
+            // Add additional variables not in model - with locale support
+            String[] priorityInfo = getPriorityInfo(callRequestModel.getPriority(), callRequestModel.getSite());
+            variables.put("priority", priorityInfo[0]);
+            variables.put("priorityClass", priorityInfo[1]);
             
             // Format created date if exists
             if (callRequestModel.getCreatedDate() != null) {
@@ -600,9 +706,10 @@ public class CallRequestServiceImpl implements CallRequestService {
                 variables.put("assignedBy", "System");
             }
             
-            // Add additional variables not in model
-            variables.put("priority", "MEDIUM"); // TODO: Add priority field to CallRequestModel
-            variables.put("priorityClass", "medium");
+            // Add additional variables not in model - with locale support
+            String[] priorityInfo = getPriorityInfo(callRequestModel.getPriority(), callRequestModel.getSite());
+            variables.put("priority", priorityInfo[0]);
+            variables.put("priorityClass", priorityInfo[1]);
             
             // Format created date if exists
             if (callRequestModel.getCreatedDate() != null) {
@@ -653,3 +760,4 @@ public class CallRequestServiceImpl implements CallRequestService {
         }
     }
 }
+

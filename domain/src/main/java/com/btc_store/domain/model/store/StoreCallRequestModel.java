@@ -1,6 +1,7 @@
 package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
+import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
@@ -48,6 +49,9 @@ public class StoreCallRequestModel extends StoreCodeBasedItemModel {
 
     @Column(name = "message", columnDefinition = "TEXT")
     private String message;
+
+    @Enumerated(EnumType.STRING)
+    private CallRequestPriority priority = CallRequestPriority.MEDIUM;
 
     @Enumerated(EnumType.STRING)
     private CallRequestStatus status = CallRequestStatus.PENDING;

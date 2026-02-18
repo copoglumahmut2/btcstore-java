@@ -3,6 +3,7 @@ package com.btc_store.controller.v1;
 import com.btc_store.constants.ControllerMappings;
 import com.btc_store.domain.data.custom.CallRequestData;
 import com.btc_store.domain.data.custom.restservice.ServiceResponseData;
+import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.enums.ProcessStatus;
 import com.btc_store.facade.CallRequestFacade;
@@ -188,6 +189,20 @@ public class CallRequestController {
                                            @RequestParam(required = false) String isoCode) {
         log.info("Inside updateStatus of CallRequestController with id: {} and status: {}", id, status);
         callRequestFacade.updateStatus(id, status, comment);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        return responseData;
+    }
+    
+    @PostMapping(ControllerMappings.ID + "/update-priority")
+    @Operation(summary = "Update call request priority")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('CallRequestModel', @authorizationConstants.SAVE))")
+    public ServiceResponseData updatePriority(@Parameter(description = "Call Request ID") @PathVariable Long id,
+                                             @Parameter(description = "New Priority") @RequestParam CallRequestPriority priority,
+                                             @Parameter(description = "IsoCode for validation message internalization")
+                                             @RequestParam(required = false) String isoCode) {
+        log.info("Inside updatePriority of CallRequestController with id: {} and priority: {}", id, priority);
+        callRequestFacade.updatePriority(id, priority);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;

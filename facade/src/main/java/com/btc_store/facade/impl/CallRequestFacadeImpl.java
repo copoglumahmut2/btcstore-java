@@ -2,6 +2,7 @@ package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.CallRequestData;
 import com.btc_store.domain.data.custom.CallRequestHistoryData;
+import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestHistoryModel;
 import com.btc_store.domain.model.custom.CallRequestModel;
@@ -217,6 +218,11 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     @Override
     public void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment) {
         callRequestService.updateStatus(callRequestId, newStatus, comment);
+    }
+    
+    @Override
+    public void updatePriority(Long callRequestId, CallRequestPriority newPriority) {
+        callRequestService.updatePriority(callRequestId, newPriority);
     }
     
     @Override

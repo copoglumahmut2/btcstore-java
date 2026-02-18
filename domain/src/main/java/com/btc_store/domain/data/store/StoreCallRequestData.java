@@ -1,6 +1,7 @@
 package com.btc_store.domain.data.store;
 
 import com.btc_store.domain.data.extend.back.BackBaseData;
+import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +18,7 @@ public class StoreCallRequestData extends BackBaseData {
     private String customerPhone;
     private String subject;
     private String message;
+    private CallRequestPriority priority;
     private CallRequestStatus status;
     
     // Multi-assign fields
