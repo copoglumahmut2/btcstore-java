@@ -140,6 +140,27 @@ public class LegalDocumentFacadeImpl implements LegalDocumentFacade {
         modelService.remove(legalDocumentModel);
     }
 
+    @Override
+    public LegalDocumentData getCurrentPrivacyPolicyDocument() {
+        var siteModel = siteService.getCurrentSite();
+        
+        // Get current Privacy Policy document
+        var privacyPolicyDocuments = searchService.search(LegalDocumentModel.class,
+                Map.of("documentType", com.btc_store.domain.enums.LegalDocumentType.PRIVACY_POLICY,
+                       "site", siteModel,
+                       "isCurrentVersion", true,
+                       "active", true),
+                SearchOperator.AND);
+        
+        if (privacyPolicyDocuments.isEmpty()) {
+            log.warn("No current Privacy Policy document found for site: {}", siteModel.getCode());
+            return null;
+        }
+        
+        var privacyPolicyDocument = privacyPolicyDocuments.iterator().next();
+        return modelMapper.map(privacyPolicyDocument, LegalDocumentData.class);
+    }
+
     /**
      * Kod otomatik oluşturma
      * Format: {documentType}-v{version}-{timestamp}

@@ -1,5 +1,6 @@
 package com.btc_store.domain.data.store;
 
+import com.btc_store.domain.data.custom.LegalDocumentData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
@@ -20,33 +21,22 @@ public class StoreCallRequestData extends BackBaseData {
     private String message;
     private CallRequestPriority priority;
     private CallRequestStatus status;
-    
-    // Multi-assign fields
-    private List<AssignedGroupInfo> assignedGroupsList; // List of assigned groups with details
-    private List<AssignedUserInfo> assignedUsersList; // List of assigned users with details
-    
-    // Simple string representations for backward compatibility
-    private String assignedGroups; // Semicolon separated group codes
-    private List<String> assignedUserNames; // List of assigned user names
-    
-    // Deprecated fields (for backward compatibility)
-    @Deprecated
-    private String assignedGroup;
-    @Deprecated
-    private Long assignedUserId;
-    @Deprecated
-    private String assignedUserName;
-    
+
+    private List<AssignedGroupInfo> assignedGroupsList;
+    private List<AssignedUserInfo> assignedUsersList;
+
+    private String assignedGroups;
+    private List<String> assignedUserNames;
     private Date completedAt;
-    private Boolean gdprConsent;
     private String ipAddress;
-    
-    // Inner classes for detailed info
+
+    private LegalDocumentData acceptedLegalDocument;
+
     @Data
     public static class AssignedGroupInfo {
         private String code;
-        private String name; // Default name (usually Turkish)
-        private LocalizedDescription description; // All language descriptions
+        private String name;
+        private LocalizedDescription description;
     }
     
     @Data

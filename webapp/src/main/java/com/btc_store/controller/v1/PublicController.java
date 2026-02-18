@@ -7,6 +7,7 @@ import com.btc_store.domain.enums.ProcessStatus;
 import com.btc_store.facade.BannerFacade;
 import com.btc_store.facade.CallRequestFacade;
 import com.btc_store.facade.CategoryFacade;
+import com.btc_store.facade.LegalDocumentFacade;
 import com.btc_store.facade.MenuLinkItemFacade;
 import com.btc_store.facade.PartnerFacade;
 import com.btc_store.facade.ReferenceFacade;
@@ -32,6 +33,7 @@ public class PublicController {
     private final MenuLinkItemFacade menuLinkItemFacade;
     private final com.btc_store.facade.SiteConfigurationFacade siteConfigurationFacade;
     private final CallRequestFacade callRequestFacade;
+    private final LegalDocumentFacade legalDocumentFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -140,6 +142,18 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedCallRequest);
+        return responseData;
+    }
+    
+    @GetMapping("/legal-documents/privacy-policy/current")
+    @Operation(summary = "Get current Privacy Policy document for call request form (Public)")
+    public ServiceResponseData getCurrentPrivacyPolicyDocument(@Parameter(description = "IsoCode for validation message internalization")
+                                                               @RequestParam(required = false) String isoCode) {
+        log.info("Inside getCurrentPrivacyPolicyDocument of PublicController.");
+        var privacyPolicyDocument = legalDocumentFacade.getCurrentPrivacyPolicyDocument();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(privacyPolicyDocument);
         return responseData;
     }
 }

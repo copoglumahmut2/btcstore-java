@@ -95,10 +95,8 @@ public class CallRequestServiceImpl implements CallRequestService {
     @Transactional
     public CallRequestModel createCallRequest(CallRequestModel callRequestModel) {
         var siteModel = siteService.getCurrentSite();
-        // Save call request (Interceptor otomatik atama ve mail gönderimini yapacak)
         CallRequestModel saved = modelService.save(callRequestModel);
-        
-        // Create history
+
         callRequestHistoryService.createHistory(
                 saved,
                 CallRequestActionType.CREATED,
@@ -110,10 +108,8 @@ public class CallRequestServiceImpl implements CallRequestService {
                 null,
                 siteModel
         );
-        
-        // Eğer otomatik atama yapıldıysa history ekle
+
         if (CallRequestStatus.ASSIGNED.equals(saved.getStatus()) && !saved.getAssignedGroups().isEmpty()) {
-            // Get group names
             String groupNames = saved.getAssignedGroups().stream()
                     .map(group -> group.getCode())
                     .collect(java.util.stream.Collectors.joining(", "));
@@ -129,13 +125,10 @@ public class CallRequestServiceImpl implements CallRequestService {
                     null,
                     siteModel
             );
-            
-            // Genel bildirim mailini gönder (atama maili değil)
-            // Bu mail call.center.group parametresindeki gruplara gider
-            // History'de hangi maillere gönderildiği görünecek
+
             publishCallRequestEvent(saved, "CREATED");
             
-            log.info("Call request {} otomatik olarak gruplara atandı: {} (Atama maili gönderilmedi, genel bildirim gönderildi)", saved.getId(), groupNames);
+            log.info("Call request {} otomatik olarak gruplara atandı: {}", saved.getId(), groupNames);
         }
         
         log.info("Call request oluşturuldu: {}", saved.getId());

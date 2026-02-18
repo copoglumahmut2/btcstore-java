@@ -3,6 +3,7 @@ package com.btc_store.domain.model.store;
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
+import com.btc_store.domain.model.custom.LegalDocumentModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
@@ -74,9 +75,9 @@ public class StoreCallRequestModel extends StoreCodeBasedItemModel {
 
     private Date completedAt;
 
-    @Column(name = "gdpr_consent", nullable = false)
-    private Boolean gdprConsent = false;
-
     @Column(name = "ip_address")
     private String ipAddress;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private LegalDocumentModel acceptedLegalDocument;
 }

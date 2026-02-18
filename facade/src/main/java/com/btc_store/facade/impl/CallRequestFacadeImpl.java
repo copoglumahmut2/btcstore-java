@@ -6,9 +6,11 @@ import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestHistoryModel;
 import com.btc_store.domain.model.custom.CallRequestModel;
+import com.btc_store.domain.model.custom.LegalDocumentModel;
 import com.btc_store.facade.CallRequestFacade;
 import com.btc_store.service.CallRequestHistoryService;
 import com.btc_store.service.CallRequestService;
+import com.btc_store.service.SearchService;
 import com.btc_store.service.SiteService;
 import com.btc_store.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     private final SiteService siteService;
     private final UserService userService;
     private final ModelMapper modelMapper;
+    private final SearchService searchService;
     
     // Configure ModelMapper for CallRequest conversion
     private void configureModelMapper() {
@@ -44,8 +47,24 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
         callRequestModel.setSite(siteModel);
         callRequestModel.setCode(UUID.randomUUID().toString());
         
+        // If acceptedLegalDocument is provided, find and set it by code
+        if (callRequestData.getAcceptedLegalDocument() != null && 
+            callRequestData.getAcceptedLegalDocument().getCode() != null) {
+            try {
+                var legalDocument = searchService.searchByCodeAndSite(
+                    LegalDocumentModel.class,
+                    callRequestData.getAcceptedLegalDocument().getCode(),
+                    siteModel
+                );
+                callRequestModel.setAcceptedLegalDocument(legalDocument);
+            } catch (Exception e) {
+                log.warn("Could not find legal document with code: {}", 
+                    callRequestData.getAcceptedLegalDocument().getCode(), e);
+            }
+        }
+        
         var savedModel = callRequestService.createCallRequest(callRequestModel);
-        return modelMapper.map(savedModel, CallRequestData.class);
+        return convertToData(savedModel);
     }
     
     @Override
@@ -132,6 +151,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
         // Only handle collections and computed fields manually
         mapAssignedUsers(model, data);
         mapAssignedGroups(model, data);
+        // Legal document is automatically mapped by ModelMapper
         
         log.debug("Converted CallRequestModel to Data - ID: {}", data.getId());
         return data;

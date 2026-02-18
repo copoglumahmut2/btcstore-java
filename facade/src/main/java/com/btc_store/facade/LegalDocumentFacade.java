@@ -10,4 +10,9 @@ public interface LegalDocumentFacade {
     LegalDocumentData saveLegalDocument(LegalDocumentData legalDocumentData);
 
     void deleteLegalDocument(String code);
+    
+    /**
+     * Get current version of Privacy Policy document for public call request form
+     */
+    LegalDocumentData getCurrentPrivacyPolicyDocument();
 }
