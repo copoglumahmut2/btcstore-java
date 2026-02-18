@@ -6,7 +6,14 @@ import com.btc_store.domain.model.custom.CallRequestModel;
 import com.btc_store.domain.model.custom.SiteModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.persistence.dao.CallRequestDao;
-import com.btc_store.service.*;
+import com.btc_store.service.CallRequestHistoryService;
+import com.btc_store.service.CallRequestService;
+import com.btc_store.service.EmailTemplateService;
+import com.btc_store.service.GenericTemplateService;
+import com.btc_store.service.ModelService;
+import com.btc_store.service.ParameterService;
+import com.btc_store.service.SiteService;
+import com.btc_store.service.user.UserGroupService;
 import com.btc_store.service.user.UserService;
 import com.btc_store.service.util.ServiceUtils;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +34,10 @@ public class CallRequestServiceImpl implements CallRequestService {
     private final ParameterService parameterService;
     private final ModelService modelService;
     private final UserService userService;
+    private final UserGroupService userGroupService;
     private final RabbitTemplate rabbitTemplate;
     private final GenericTemplateService genericTemplateService;
-    private final com.btc_store.service.EmailTemplateService emailTemplateService;
+    private final EmailTemplateService emailTemplateService;
     private final SiteService siteService;
     
     private static final String EMAIL_EXCHANGE = "email.exchange";
@@ -114,7 +122,21 @@ public class CallRequestServiceImpl implements CallRequestService {
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         CallRequestStatus oldStatus = callRequest.getStatus();
         
-        callRequest.setAssignedGroup(groupCode);
+        // Get current user who is making the assignment
+        String assignedBy = "System";
+        Long assignedByUserId = null;
+        try {
+            var currentUser = userService.getCurrentUser();
+            assignedBy = currentUser.getUsername();
+            assignedByUserId = currentUser.getId();
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        
+        var userGroup = userGroupService.getUserGroupModel(groupCode, siteModel);
+        callRequest.getAssignedGroups().clear();
+        callRequest.getAssignedGroups().add(userGroup);
+        callRequest.setAssignedGroup(groupCode); // Backward compatibility
         callRequest.setStatus(CallRequestStatus.ASSIGNED);
         modelService.save(callRequest);
         
@@ -122,19 +144,74 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_GROUP,
-                "Gruba atandı: " + groupCode,
-                null,
-                "System",
+                "Gruba atandı: " + groupCode + " (Atayan: " + assignedBy + ")",
+                assignedByUserId,
+                assignedBy,
                 oldStatus,
                 CallRequestStatus.ASSIGNED,
                 null,
                 siteModel
         );
         
-        // Publish event
-        publishCallRequestEvent(callRequest, "ASSIGNED_TO_GROUP");
+        // Send email notification to group members
+        publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP");
         
-        log.info("Call request {} gruba atandı: {}", callRequestId, groupCode);
+        log.info("Call request {} gruba atandı: {} (Atayan: {})", callRequestId, groupCode, assignedBy);
+    }
+    
+    @Override
+    @Transactional
+    public void assignToGroups(Long callRequestId, List<String> groupCodes) {
+        var siteModel = siteService.getCurrentSite();
+        CallRequestModel callRequest = getCallRequestById(callRequestId);
+        CallRequestStatus oldStatus = callRequest.getStatus();
+        
+        // Get current user who is making the assignment
+        String assignedBy = "System";
+        Long assignedByUserId = null;
+        try {
+            var currentUser = userService.getCurrentUser();
+            assignedBy = currentUser.getUsername();
+            assignedByUserId = currentUser.getId();
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        
+        // Clear existing groups and add new ones
+        callRequest.getAssignedGroups().clear();
+        
+        for (String groupCode : groupCodes) {
+            var userGroup = userGroupService.getUserGroupModel(groupCode, siteModel);
+            callRequest.getAssignedGroups().add(userGroup);
+        }
+        
+        // Backward compatibility
+        if (!groupCodes.isEmpty()) {
+            callRequest.setAssignedGroup(groupCodes.get(0));
+        }
+        
+        callRequest.setStatus(CallRequestStatus.ASSIGNED);
+        modelService.save(callRequest);
+        
+        // Create history
+        callRequestHistoryService.createHistory(
+                callRequest,
+                CallRequestActionType.ASSIGNED_TO_GROUP,
+                "Gruplara atandı: " + String.join(", ", groupCodes) + " (Atayan: " + assignedBy + ")",
+                assignedByUserId,
+                assignedBy,
+                oldStatus,
+                CallRequestStatus.ASSIGNED,
+                null,
+                siteModel
+        );
+        
+        // Send email notification to all group members
+        for (String groupCode : groupCodes) {
+            publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP");
+        }
+        
+        log.info("Call request {} gruplara atandı: {} (Atayan: {})", callRequestId, String.join(", ", groupCodes), assignedBy);
     }
     
     @Override
@@ -145,7 +222,19 @@ public class CallRequestServiceImpl implements CallRequestService {
         UserModel user = userService.getUserModelById(userId);
         CallRequestStatus oldStatus = callRequest.getStatus();
         
+        // Get current user who is making the assignment
+        String assignedBy = "System";
+        Long assignedByUserId = null;
+        try {
+            var currentUser = userService.getCurrentUser();
+            assignedBy = currentUser.getUsername();
+            assignedByUserId = currentUser.getId();
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        
         callRequest.setAssignedUser(user);
+        callRequest.getAssignedUsers().add(user); // Add to new field too
         callRequest.setStatus(CallRequestStatus.IN_PROGRESS);
         modelService.save(callRequest);
         
@@ -153,16 +242,115 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_USER,
-                "Kullanıcıya atandı: " + user.getUsername(),
-                userId,
-                user.getUsername(),
+                "Kullanıcıya atandı: " + user.getUsername() + " (Atayan: " + assignedBy + ")",
+                assignedByUserId,
+                assignedBy,
                 oldStatus,
                 CallRequestStatus.IN_PROGRESS,
                 null,
                 siteModel
         );
         
-        log.info("Call request {} kullanıcıya atandı: {}", callRequestId, userId);
+        // Send email notification to assigned user
+        publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER");
+        
+        log.info("Call request {} kullanıcıya atandı: {} (Atayan: {})", callRequestId, userId, assignedBy);
+    }
+    
+    @Override
+    @Transactional
+    public void assignToUsers(Long callRequestId, List<Long> userIds) {
+        var siteModel = siteService.getCurrentSite();
+        CallRequestModel callRequest = getCallRequestById(callRequestId);
+        CallRequestStatus oldStatus = callRequest.getStatus();
+        
+        // Get current user who is making the assignment
+        String assignedBy = "System";
+        Long assignedByUserId = null;
+        try {
+            var currentUser = userService.getCurrentUser();
+            assignedBy = currentUser.getUsername();
+            assignedByUserId = currentUser.getId();
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        
+        callRequest.getAssignedUsers().clear();
+        List<String> usernames = new ArrayList<>();
+        List<UserModel> assignedUsers = new ArrayList<>();
+        
+        for (Long userId : userIds) {
+            UserModel user = userService.getUserModelById(userId);
+            callRequest.getAssignedUsers().add(user);
+            assignedUsers.add(user);
+            usernames.add(user.getUsername());
+        }
+        
+        if (!userIds.isEmpty()) {
+            callRequest.setAssignedUser(userService.getUserModelById(userIds.get(0))); // Backward compatibility
+        }
+        
+        callRequest.setStatus(CallRequestStatus.IN_PROGRESS);
+        modelService.save(callRequest);
+        
+        // Create history
+        callRequestHistoryService.createHistory(
+                callRequest,
+                CallRequestActionType.ASSIGNED_TO_USER,
+                "Kullanıcılara atandı: " + String.join(", ", usernames) + " (Atayan: " + assignedBy + ")",
+                assignedByUserId,
+                assignedBy,
+                oldStatus,
+                CallRequestStatus.IN_PROGRESS,
+                null,
+                siteModel
+        );
+        
+        // Send email notification to all assigned users
+        for (UserModel user : assignedUsers) {
+            publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER");
+        }
+        
+        log.info("Call request {} kullanıcılara atandı: {} (Atayan: {})", callRequestId, String.join(", ", usernames), assignedBy);
+    }
+    
+    @Override
+    @Transactional
+    public void closeCallRequest(Long callRequestId, String comment) {
+        var siteModel = siteService.getCurrentSite();
+        CallRequestModel callRequest = getCallRequestById(callRequestId);
+        CallRequestStatus oldStatus = callRequest.getStatus();
+        
+        callRequest.setStatus(CallRequestStatus.CLOSED);
+        callRequest.setCompletedAt(new Date());
+        callRequestDao.save(callRequest);
+        
+        // Get current user
+        String closedBy = "System";
+        try {
+            var currentUser = userService.getCurrentUser();
+            closedBy = currentUser.getUsername();
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        
+        // Create history
+        callRequestHistoryService.createHistory(
+                callRequest,
+                CallRequestActionType.STATUS_CHANGED,
+                "Çağrı kapatıldı - " + closedBy + " tarafından",
+                null,
+                closedBy,
+                oldStatus,
+                CallRequestStatus.CLOSED,
+                comment,
+                siteModel
+        );
+        
+        // Send email notification
+        publishCallRequestEvent(callRequest, "CLOSED");
+        
+        log.info("Call request {} kapatıldı: {} tarafından", callRequestId, closedBy);
     }
     
     @Override
@@ -257,6 +445,96 @@ public class CallRequestServiceImpl implements CallRequestService {
             log.info("Call request event published: {} - {}", callRequestModel.getId(), eventType);
         } catch (Exception e) {
             log.error("Call request event gönderilemedi: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Send email notification to a specific user
+     */
+    private void publishCallRequestEventToUser(CallRequestModel callRequestModel, UserModel user, String eventType) {
+        try {
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                log.warn("User {} has no email address", user.getUsername());
+                return;
+            }
+            
+            var siteModel = siteService.getCurrentSite();
+            
+            // Get email template from database
+            String templateCode = "call_request_notification";
+            var emailTemplate = emailTemplateService.getEmailTemplateByCode(templateCode, callRequestModel.getSite());
+            
+            // Extract variables using generic template service
+            Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
+            
+            // Process template with variables
+            String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
+            String processedBody = genericTemplateService.processTemplate(emailTemplate.getBody(), variables);
+            
+            // Create event DTO
+            Map<String, Object> event = new HashMap<>();
+            event.put("subject", processedSubject);
+            event.put("body", processedBody);
+            event.put("recipients", List.of(user.getEmail()));
+            event.put("source", "CallRequest");
+            event.put("sourceId", callRequestModel.getId());
+            
+            // Send to RabbitMQ
+            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
+            
+            log.info("Call request event sent to user: {} - {} - {}", user.getUsername(), callRequestModel.getId(), eventType);
+        } catch (Exception e) {
+            log.error("Call request event kullanıcıya gönderilemedi: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Send email notification to all members of a group
+     */
+    private void publishCallRequestEventToGroup(CallRequestModel callRequestModel, String groupCode, String eventType) {
+        try {
+            var siteModel = siteService.getCurrentSite();
+            
+            // Get users in the group
+            List<UserModel> users = userService.getUsersByGroupCode(groupCode);
+            List<String> userEmails = new ArrayList<>();
+            
+            users.forEach(user -> {
+                if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                    userEmails.add(user.getEmail());
+                }
+            });
+            
+            if (userEmails.isEmpty()) {
+                log.warn("No users with email found in group: {}", groupCode);
+                return;
+            }
+            
+            // Get email template from database
+            String templateCode = "call_request_notification";
+            var emailTemplate = emailTemplateService.getEmailTemplateByCode(templateCode, callRequestModel.getSite());
+            
+            // Extract variables using generic template service
+            Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
+            
+            // Process template with variables
+            String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
+            String processedBody = genericTemplateService.processTemplate(emailTemplate.getBody(), variables);
+            
+            // Create event DTO
+            Map<String, Object> event = new HashMap<>();
+            event.put("subject", processedSubject);
+            event.put("body", processedBody);
+            event.put("recipients", userEmails);
+            event.put("source", "CallRequest");
+            event.put("sourceId", callRequestModel.getId());
+            
+            // Send to RabbitMQ
+            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
+            
+            log.info("Call request event sent to group: {} - {} users - {} - {}", groupCode, userEmails.size(), callRequestModel.getId(), eventType);
+        } catch (Exception e) {
+            log.error("Call request event gruba gönderilemedi: {}", e.getMessage(), e);
         }
     }
 }

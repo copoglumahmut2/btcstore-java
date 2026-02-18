@@ -34,6 +34,20 @@ public class UserController {
         responseData.setData(users);
         return responseData;
     }
+    
+    @GetMapping("/search")
+    @Operation(summary = "Search users by username or email")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('UserModel', @authorizationConstants.READ))")
+    public ServiceResponseData searchUsers(@Parameter(description = "Search query") @RequestParam String query,
+                                          @Parameter(description = "IsoCode for validation message internalization")
+                                          @RequestParam(required = false) String isoCode) {
+        log.info("Inside searchUsers of UserController with query: {}", query);
+        var users = userFacade.searchUsers(query);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(users);
+        return responseData;
+    }
 
     @GetMapping(ControllerMappings.CODE)
     @Operation(summary = "Get user by code")

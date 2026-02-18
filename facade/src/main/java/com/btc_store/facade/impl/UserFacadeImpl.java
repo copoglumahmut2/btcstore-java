@@ -44,6 +44,27 @@ public class UserFacadeImpl implements UserFacade {
                 SearchOperator.AND);
         return List.of(modelMapper.map(userModels, UserData[].class));
     }
+    
+    @Override
+    public List<UserData> searchUsers(String query) {
+        var siteModel = siteService.getCurrentSite();
+        var allUsers = searchService.search(UserModel.class,
+                Map.of(StoreSiteBasedItemModel.Fields.site, siteModel),
+                SearchOperator.AND);
+        
+        // Filter by username or email containing query (case insensitive)
+        var filteredUsers = allUsers.stream()
+                .filter(user -> 
+                    (user.getUsername() != null && user.getUsername().toLowerCase().contains(query.toLowerCase())) ||
+                    (user.getEmail() != null && user.getEmail().toLowerCase().contains(query.toLowerCase())) ||
+                    (user.getFirstName() != null && user.getFirstName().toLowerCase().contains(query.toLowerCase())) ||
+                    (user.getLastName() != null && user.getLastName().toLowerCase().contains(query.toLowerCase()))
+                )
+                .limit(20) // Limit results for autocomplete
+                .toList();
+        
+        return List.of(modelMapper.map(filteredUsers, UserData[].class));
+    }
 
     @Override
     public UserData getUserByCode(String code) {

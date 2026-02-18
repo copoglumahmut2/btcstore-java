@@ -2,10 +2,9 @@ package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.enums.CallRequestStatus;
-import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
+import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
-import com.btc_store.domain.model.store.extend.StoreItemModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,6 +14,8 @@ import lombok.experimental.FieldNameConstants;
 
 import java.io.Serial;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = DomainConstant.CALLREQUESTMODEL_TABLE_NAME,
@@ -52,9 +53,28 @@ public class StoreCallRequestModel extends StoreCodeBasedItemModel {
     @Enumerated(EnumType.STRING)
     private CallRequestStatus status = CallRequestStatus.PENDING;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "call_request_assigned_groups",
+        joinColumns = @JoinColumn(name = "call_request_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_group_id")
+    )
+    private Set<UserGroupModel> assignedGroups = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "call_request_assigned_users",
+        joinColumns = @JoinColumn(name = "call_request_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<UserModel> assignedUsers = new HashSet<>();
+    
+    // Backward compatibility - deprecated
+    @Deprecated
     @Column(name = "assigned_group")
     private String assignedGroup;
 
+    @Deprecated
     @ManyToOne(fetch = FetchType.LAZY)
     private UserModel assignedUser;
 

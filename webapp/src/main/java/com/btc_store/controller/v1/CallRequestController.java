@@ -122,6 +122,20 @@ public class CallRequestController {
         return responseData;
     }
     
+    @PostMapping(ControllerMappings.ID + "/assign-groups")
+    @Operation(summary = "Assign call request to multiple groups")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('CallRequestModel', @authorizationConstants.SAVE))")
+    public ServiceResponseData assignToGroups(@Parameter(description = "Call Request ID") @PathVariable Long id,
+                                             @Parameter(description = "Group Codes") @RequestBody java.util.List<String> groupCodes,
+                                             @Parameter(description = "IsoCode for validation message internalization")
+                                             @RequestParam(required = false) String isoCode) {
+        log.info("Inside assignToGroups of CallRequestController with id: {} and groupCodes: {}", id, groupCodes);
+        callRequestFacade.assignToGroups(id, groupCodes);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        return responseData;
+    }
+    
     @PostMapping(ControllerMappings.ID + ControllerMappings.ASSIGN_USER)
     @Operation(summary = "Assign call request to user")
     @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('CallRequestModel', @authorizationConstants.SAVE))")
@@ -131,6 +145,34 @@ public class CallRequestController {
                                            @RequestParam(required = false) String isoCode) {
         log.info("Inside assignToUser of CallRequestController with id: {} and userId: {}", id, userId);
         callRequestFacade.assignToUser(id, userId);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        return responseData;
+    }
+    
+    @PostMapping(ControllerMappings.ID + "/assign-users")
+    @Operation(summary = "Assign call request to multiple users")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('CallRequestModel', @authorizationConstants.SAVE))")
+    public ServiceResponseData assignToUsers(@Parameter(description = "Call Request ID") @PathVariable Long id,
+                                            @Parameter(description = "User IDs") @RequestBody java.util.List<Long> userIds,
+                                            @Parameter(description = "IsoCode for validation message internalization")
+                                            @RequestParam(required = false) String isoCode) {
+        log.info("Inside assignToUsers of CallRequestController with id: {} and userIds: {}", id, userIds);
+        callRequestFacade.assignToUsers(id, userIds);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        return responseData;
+    }
+    
+    @PostMapping(ControllerMappings.ID + "/close")
+    @Operation(summary = "Close call request")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('CallRequestModel', @authorizationConstants.SAVE))")
+    public ServiceResponseData closeCallRequest(@Parameter(description = "Call Request ID") @PathVariable Long id,
+                                               @Parameter(description = "Comment") @RequestParam(required = false) String comment,
+                                               @Parameter(description = "IsoCode for validation message internalization")
+                                               @RequestParam(required = false) String isoCode) {
+        log.info("Inside closeCallRequest of CallRequestController with id: {}", id);
+        callRequestFacade.closeCallRequest(id, comment);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;

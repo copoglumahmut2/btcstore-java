@@ -24,9 +24,15 @@ public interface CallRequestService {
     
     void assignToGroup(Long callRequestId, String groupCode);
     
+    void assignToGroups(Long callRequestId, List<String> groupCodes);
+    
     void assignToUser(Long callRequestId, Long userId);
     
+    void assignToUsers(Long callRequestId, List<Long> userIds);
+    
     void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment);
+    
+    void closeCallRequest(Long callRequestId, String comment);
     
     void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType);
 }

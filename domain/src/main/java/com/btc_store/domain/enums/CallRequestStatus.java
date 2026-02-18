@@ -6,5 +6,6 @@ public enum CallRequestStatus {
     IN_PROGRESS,          // İşlemde
     CUSTOMER_INFORMED,    // Müşteri Bilgilendirildi
     COMPLETED,            // Tamamlandı
-    CANCELLED             // İptal Edildi
+    CANCELLED,            // İptal Edildi
+    CLOSED                // Kapatıldı
 }

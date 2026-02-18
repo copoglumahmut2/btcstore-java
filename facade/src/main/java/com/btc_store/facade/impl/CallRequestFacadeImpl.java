@@ -79,11 +79,36 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     @Override
     public List<CallRequestData> getMyCallRequests() {
         var currentUser = userService.getCurrentUser();
-        var callRequestModels = callRequestService.getCallRequestsByAssignedUser(
+        
+        // Get user's groups
+        var userGroups = currentUser.getUserGroups();
+        
+        // Get requests assigned directly to user (IN_PROGRESS or ASSIGNED status)
+        var userRequests = callRequestService.getCallRequestsByAssignedUser(
                 currentUser.getId(), 
                 CallRequestStatus.IN_PROGRESS
         );
-        return callRequestModels.stream()
+        
+        // Get requests assigned to user's groups (ASSIGNED status)
+        var groupRequests = userGroups.stream()
+                .flatMap(group -> callRequestService.getCallRequestsByAssignedGroup(
+                        group.getCode(), 
+                        CallRequestStatus.ASSIGNED
+                ).stream())
+                .toList();
+        
+        // Combine and remove duplicates
+        var allRequests = new java.util.ArrayList<>(userRequests);
+        groupRequests.forEach(req -> {
+            if (allRequests.stream().noneMatch(r -> r.getId().equals(req.getId()))) {
+                allRequests.add(req);
+            }
+        });
+        
+        // Sort by created date descending
+        allRequests.sort((a, b) -> b.getCreatedDate().compareTo(a.getCreatedDate()));
+        
+        return allRequests.stream()
                 .map(this::convertToData)
                 .toList();
     }
@@ -112,13 +137,28 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     }
     
     @Override
+    public void assignToGroups(Long callRequestId, List<String> groupCodes) {
+        callRequestService.assignToGroups(callRequestId, groupCodes);
+    }
+    
+    @Override
     public void assignToUser(Long callRequestId, Long userId) {
         callRequestService.assignToUser(callRequestId, userId);
     }
     
     @Override
+    public void assignToUsers(Long callRequestId, List<Long> userIds) {
+        callRequestService.assignToUsers(callRequestId, userIds);
+    }
+    
+    @Override
     public void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment) {
         callRequestService.updateStatus(callRequestId, newStatus, comment);
+    }
+    
+    @Override
+    public void closeCallRequest(Long callRequestId, String comment) {
+        callRequestService.closeCallRequest(callRequestId, comment);
     }
     
     @Override
