@@ -13,7 +13,6 @@ public class StoreCallRequestHistoryData extends BackBaseData {
     private Long callRequestId;
     private CallRequestActionType actionType;
     private String description;
-    private Long performedByUserId;
     private String performedByUsername;
     private CallRequestStatus oldStatus;
     private CallRequestStatus newStatus;

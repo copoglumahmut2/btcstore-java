@@ -3,6 +3,7 @@ package com.btc_store.domain.model.store;
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.enums.CallRequestActionType;
 import com.btc_store.domain.enums.CallRequestStatus;
+import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
 import com.btc_store.domain.model.store.extend.StoreItemModel;
@@ -15,9 +16,8 @@ import java.io.Serial;
 
 @Entity
 @Table(name = DomainConstant.CALLREQUESTHISTORYMODEL_TABLE_NAME,
-        indexes = {
-                @Index(name = DomainConstant.CALLREQUESTHISTORYMODEL_TABLE_NAME + "_request_idx", columnList = "call_request_id")
-        })
+        uniqueConstraints = {@UniqueConstraint(columnNames = {StoreCodeBasedItemModel.Fields.code, SiteBasedItemModel.SITE_RELATION})},
+        indexes = {@Index(name = DomainConstant.CALLREQUESTHISTORYMODEL_TABLE_NAME + DomainConstant.CODE_IDX, columnList = "code,site_id")})
 @Getter
 @Setter
 @FieldNameConstants
@@ -34,9 +34,6 @@ public class StoreCallRequestHistoryModel extends StoreCodeBasedItemModel {
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserModel performedByUser;
 
     @Column(name = "performed_by_username")
     private String performedByUsername;

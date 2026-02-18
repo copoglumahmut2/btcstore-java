@@ -29,6 +29,12 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     private final UserService userService;
     private final ModelMapper modelMapper;
     
+    // Configure ModelMapper for CallRequest conversion
+    private void configureModelMapper() {
+        // This will be called once to configure custom mappings if needed
+        // For now, we rely on default mapping + manual collection handling
+    }
+    
     @Override
     public CallRequestData createCallRequest(CallRequestData callRequestData) {
         var siteModel = siteService.getCurrentSite();
@@ -105,8 +111,13 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
             }
         });
         
-        // Sort by created date descending
-        allRequests.sort((a, b) -> b.getCreatedDate().compareTo(a.getCreatedDate()));
+        // Sort by created date descending (null-safe)
+        allRequests.sort((a, b) -> {
+            if (a.getCreatedDate() == null && b.getCreatedDate() == null) return 0;
+            if (a.getCreatedDate() == null) return 1;
+            if (b.getCreatedDate() == null) return -1;
+            return b.getCreatedDate().compareTo(a.getCreatedDate());
+        });
         
         return allRequests.stream()
                 .map(this::convertToData)
@@ -114,21 +125,73 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     }
     
     private CallRequestData convertToData(CallRequestModel model) {
+        // ModelMapper automatically maps basic fields
         CallRequestData data = modelMapper.map(model, CallRequestData.class);
         
-        // Manually set audit fields to ensure they are mapped
-        data.setCreatedDate(model.getCreatedDate());
-        data.setLastModifiedDate(model.getLastModifiedDate());
-        data.setCreatedBy(model.getCreatedBy());
-        data.setLastModifiedBy(model.getLastModifiedBy());
+        // Only handle collections and computed fields manually
+        mapAssignedUsers(model, data);
+        mapAssignedGroups(model, data);
         
-        if (model.getAssignedUser() != null) {
-            data.setAssignedUserId(model.getAssignedUser().getId());
-            data.setAssignedUserName(model.getAssignedUser().getUsername());
+        log.debug("Converted CallRequestModel to Data - ID: {}", data.getId());
+        return data;
+    }
+    
+    private void mapAssignedUsers(CallRequestModel model, CallRequestData data) {
+        if (model.getAssignedUsers() == null || model.getAssignedUsers().isEmpty()) {
+            return;
         }
         
-        log.debug("Converted CallRequestModel to Data - ID: {}, CreatedDate: {}", data.getId(), data.getCreatedDate());
-        return data;
+        // Detailed list - ModelMapper handles the mapping
+        List<CallRequestData.AssignedUserInfo> userInfoList = model.getAssignedUsers().stream()
+                .map(user -> modelMapper.map(user, CallRequestData.AssignedUserInfo.class))
+                .toList();
+        data.setAssignedUsersList(userInfoList);
+        
+        // Simple list for backward compatibility
+        List<String> userNames = model.getAssignedUsers().stream()
+                .map(user -> user.getUsername())
+                .toList();
+        data.setAssignedUserNames(userNames);
+        
+        // Set first user for backward compatibility
+        var firstUser = model.getAssignedUsers().iterator().next();
+        data.setAssignedUserId(firstUser.getId());
+        data.setAssignedUserName(firstUser.getUsername());
+    }
+    
+    private void mapAssignedGroups(CallRequestModel model, CallRequestData data) {
+        if (model.getAssignedGroups() == null || model.getAssignedGroups().isEmpty()) {
+            return;
+        }
+        
+        // Detailed list with computed name field
+        List<CallRequestData.AssignedGroupInfo> groupInfoList = model.getAssignedGroups().stream()
+                .map(group -> {
+                    var info = new CallRequestData.AssignedGroupInfo();
+                    info.setCode(group.getCode());
+                    
+                    if (group.getDescription() != null) {
+                        // ModelMapper handles Localized -> LocalizedDescription
+                        info.setDescription(modelMapper.map(group.getDescription(), CallRequestData.LocalizedDescription.class));
+                        // Computed field: default name from Turkish description
+                        info.setName(group.getDescription().getTr() != null ? group.getDescription().getTr() : group.getCode());
+                    } else {
+                        info.setName(group.getCode());
+                    }
+                    
+                    return info;
+                })
+                .toList();
+        data.setAssignedGroupsList(groupInfoList);
+        
+        // Simple string for backward compatibility
+        String groupCodes = model.getAssignedGroups().stream()
+                .map(group -> group.getCode())
+                .collect(java.util.stream.Collectors.joining(";"));
+        data.setAssignedGroups(groupCodes);
+        
+        // Set first group for backward compatibility
+        data.setAssignedGroup(model.getAssignedGroups().iterator().next().getCode());
     }
     
     @Override

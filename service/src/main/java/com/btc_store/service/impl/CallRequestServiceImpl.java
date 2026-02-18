@@ -64,11 +64,16 @@ public class CallRequestServiceImpl implements CallRequestService {
         );
         
         // Eğer otomatik atama yapıldıysa history ekle
-        if (CallRequestStatus.ASSIGNED.equals(saved.getStatus()) && saved.getAssignedGroup() != null) {
+        if (CallRequestStatus.ASSIGNED.equals(saved.getStatus()) && !saved.getAssignedGroups().isEmpty()) {
+            // Get group names
+            String groupNames = saved.getAssignedGroups().stream()
+                    .map(group -> group.getCode())
+                    .collect(java.util.stream.Collectors.joining(", "));
+            
             callRequestHistoryService.createHistory(
                     saved,
                     CallRequestActionType.ASSIGNED_TO_GROUP,
-                    "Otomatik olarak gruba atandı: " + saved.getAssignedGroup(),
+                    "Otomatik olarak gruplara atandı: " + groupNames,
                     null,
                     "System",
                     CallRequestStatus.PENDING,
@@ -120,6 +125,12 @@ public class CallRequestServiceImpl implements CallRequestService {
     public void assignToGroup(Long callRequestId, String groupCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
+        
+        // Check if request is closed
+        if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
+            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+        }
+        
         CallRequestStatus oldStatus = callRequest.getStatus();
         
         // Get current user who is making the assignment
@@ -136,7 +147,6 @@ public class CallRequestServiceImpl implements CallRequestService {
         var userGroup = userGroupService.getUserGroupModel(groupCode, siteModel);
         callRequest.getAssignedGroups().clear();
         callRequest.getAssignedGroups().add(userGroup);
-        callRequest.setAssignedGroup(groupCode); // Backward compatibility
         callRequest.setStatus(CallRequestStatus.ASSIGNED);
         modelService.save(callRequest);
         
@@ -164,6 +174,12 @@ public class CallRequestServiceImpl implements CallRequestService {
     public void assignToGroups(Long callRequestId, List<String> groupCodes) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
+        
+        // Check if request is closed
+        if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
+            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+        }
+        
         CallRequestStatus oldStatus = callRequest.getStatus();
         
         // Get current user who is making the assignment
@@ -183,11 +199,6 @@ public class CallRequestServiceImpl implements CallRequestService {
         for (String groupCode : groupCodes) {
             var userGroup = userGroupService.getUserGroupModel(groupCode, siteModel);
             callRequest.getAssignedGroups().add(userGroup);
-        }
-        
-        // Backward compatibility
-        if (!groupCodes.isEmpty()) {
-            callRequest.setAssignedGroup(groupCodes.get(0));
         }
         
         callRequest.setStatus(CallRequestStatus.ASSIGNED);
@@ -219,6 +230,12 @@ public class CallRequestServiceImpl implements CallRequestService {
     public void assignToUser(Long callRequestId, Long userId) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
+        
+        // Check if request is closed
+        if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
+            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+        }
+        
         UserModel user = userService.getUserModelById(userId);
         CallRequestStatus oldStatus = callRequest.getStatus();
         
@@ -233,8 +250,8 @@ public class CallRequestServiceImpl implements CallRequestService {
             log.warn("Could not get current user: {}", e.getMessage());
         }
         
-        callRequest.setAssignedUser(user);
-        callRequest.getAssignedUsers().add(user); // Add to new field too
+        callRequest.getAssignedUsers().clear();
+        callRequest.getAssignedUsers().add(user);
         callRequest.setStatus(CallRequestStatus.IN_PROGRESS);
         modelService.save(callRequest);
         
@@ -262,6 +279,12 @@ public class CallRequestServiceImpl implements CallRequestService {
     public void assignToUsers(Long callRequestId, List<Long> userIds) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
+        
+        // Check if request is closed
+        if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
+            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+        }
+        
         CallRequestStatus oldStatus = callRequest.getStatus();
         
         // Get current user who is making the assignment
@@ -284,10 +307,6 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequest.getAssignedUsers().add(user);
             assignedUsers.add(user);
             usernames.add(user.getUsername());
-        }
-        
-        if (!userIds.isEmpty()) {
-            callRequest.setAssignedUser(userService.getUserModelById(userIds.get(0))); // Backward compatibility
         }
         
         callRequest.setStatus(CallRequestStatus.IN_PROGRESS);
@@ -327,9 +346,11 @@ public class CallRequestServiceImpl implements CallRequestService {
         
         // Get current user
         String closedBy = "System";
+        Long closedByUserId = null;
         try {
             var currentUser = userService.getCurrentUser();
             closedBy = currentUser.getUsername();
+            closedByUserId = currentUser.getId();
         } catch (Exception e) {
             log.warn("Could not get current user: {}", e.getMessage());
         }
@@ -339,7 +360,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                 callRequest,
                 CallRequestActionType.STATUS_CHANGED,
                 "Çağrı kapatıldı - " + closedBy + " tarafından",
-                null,
+                closedByUserId,
                 closedBy,
                 oldStatus,
                 CallRequestStatus.CLOSED,
@@ -359,6 +380,11 @@ public class CallRequestServiceImpl implements CallRequestService {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         CallRequestStatus oldStatus = callRequest.getStatus();
+        
+        // Check if request is closed (except when trying to reopen)
+        if (CallRequestStatus.CLOSED.equals(oldStatus) && !CallRequestStatus.CLOSED.equals(newStatus)) {
+            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+        }
         
         callRequest.setStatus(newStatus);
         if (newStatus == CallRequestStatus.COMPLETED) {

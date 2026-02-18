@@ -2,6 +2,7 @@ package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.enums.CallRequestStatus;
+import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreCodeBasedItemModel;
@@ -19,10 +20,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = DomainConstant.CALLREQUESTMODEL_TABLE_NAME,
-        indexes = {
-                @Index(name = DomainConstant.CALLREQUESTMODEL_TABLE_NAME + "_status_idx", columnList = "status"),
-                @Index(name = DomainConstant.CALLREQUESTMODEL_TABLE_NAME + "_site_idx", columnList = "site_id")
-        })
+        uniqueConstraints = {@UniqueConstraint(columnNames = {StoreCodeBasedItemModel.Fields.code, SiteBasedItemModel.SITE_RELATION})},
+        indexes = {@Index(name = DomainConstant.CALLREQUESTMODEL_TABLE_NAME + DomainConstant.CODE_IDX, columnList = "code,site_id")})
 @Getter
 @Setter
 @FieldNameConstants
@@ -68,15 +67,6 @@ public class StoreCallRequestModel extends StoreCodeBasedItemModel {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<UserModel> assignedUsers = new HashSet<>();
-    
-    // Backward compatibility - deprecated
-    @Deprecated
-    @Column(name = "assigned_group")
-    private String assignedGroup;
-
-    @Deprecated
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserModel assignedUser;
 
     private Date completedAt;
 

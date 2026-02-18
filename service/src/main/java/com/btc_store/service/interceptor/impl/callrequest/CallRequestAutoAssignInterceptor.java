@@ -8,6 +8,7 @@ import com.btc_store.service.ParameterService;
 import com.btc_store.service.exception.interceptor.InterceptorException;
 import com.btc_store.service.interceptor.BeforeSaveInterceptor;
 import com.btc_store.service.interceptor.Interceptor;
+import com.btc_store.service.user.UserGroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -21,6 +22,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 public class CallRequestAutoAssignInterceptor implements Interceptor<CallRequestModel> {
     
     private final ParameterService parameterService;
+    private final UserGroupService userGroupService;
     private final CallRequestHistoryService callRequestHistoryService;
     private final RabbitTemplate rabbitTemplate;
     
@@ -38,10 +40,18 @@ public class CallRequestAutoAssignInterceptor implements Interceptor<CallRequest
             // Otomatik olarak gruba ata
             String callCenterGroup = parameterService.getValueByCode("call.center.group", model.getSite());
             if (callCenterGroup != null && !callCenterGroup.isEmpty()) {
-                model.setAssignedGroup(callCenterGroup);
+                // Parse multiple groups separated by semicolon
+                String[] groups = callCenterGroup.split(";");
+                model.getAssignedGroups().clear();
+                
+                for (String groupCode : groups) {
+                    var userGroup = userGroupService.getUserGroupModel(groupCode.trim(), model.getSite());
+                    model.getAssignedGroups().add(userGroup);
+                }
+                
                 model.setStatus(CallRequestStatus.ASSIGNED);
                 
-                log.info("Call request otomatik olarak gruba atandı: {}", callCenterGroup);
+                log.info("Call request otomatik olarak gruplara atandı: {}", callCenterGroup);
             }
         } catch (Exception e) {
             log.error("CallRequest otomatik atama sırasında hata: {}", e.getMessage(), e);
