@@ -12,6 +12,7 @@ import com.btc_store.facade.MenuLinkItemFacade;
 import com.btc_store.facade.PartnerFacade;
 import com.btc_store.facade.ProductFacade;
 import com.btc_store.facade.ReferenceFacade;
+import com.btc_store.facade.SuccessStoryFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +37,7 @@ public class PublicController {
     private final CallRequestFacade callRequestFacade;
     private final LegalDocumentFacade legalDocumentFacade;
     private final ProductFacade productFacade;
+    private final SuccessStoryFacade successStoryFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -202,6 +204,31 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedCallRequest);
+        return responseData;
+    }
+    
+    @GetMapping("/success-stories")
+    @Operation(summary = "Get all active success stories for public display")
+    public ServiceResponseData getActiveSuccessStories(@Parameter(description = "IsoCode for validation message internalization")
+                                                       @RequestParam(required = false) String isoCode) {
+        log.info("Inside getActiveSuccessStories of PublicController.");
+        var successStories = successStoryFacade.getActiveSuccessStories();
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(successStories);
+        return responseData;
+    }
+    
+    @GetMapping("/success-stories/{code}")
+    @Operation(summary = "Get success story by code for public display")
+    public ServiceResponseData getSuccessStoryByCode(@Parameter(description = "Success Story code") @PathVariable String code,
+                                                     @Parameter(description = "IsoCode for validation message internalization")
+                                                     @RequestParam(required = false) String isoCode) {
+        log.info("Inside getSuccessStoryByCode of PublicController with code: {}", code);
+        var successStory = successStoryFacade.getSuccessStoryByCode(code);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(successStory);
         return responseData;
     }
 }

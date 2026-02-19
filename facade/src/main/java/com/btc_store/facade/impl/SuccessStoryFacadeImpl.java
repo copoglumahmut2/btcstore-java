@@ -75,16 +75,30 @@ public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
             
             MediaModel mediaToKeep = successStoryModel.getMedia();
 
-            var newResults = successStoryData.getResults();
-            successStoryData.setResults(null);
+            // Update basic fields
+            if (StringUtils.isNotEmpty(successStoryData.getCompany())) {
+                successStoryModel.setCompany(successStoryData.getCompany());
+            }
+            
+            if (Objects.nonNull(successStoryData.getTitle())) {
+                successStoryModel.setTitle(successStoryData.getTitle());
+            }
+            
+            if (Objects.nonNull(successStoryData.getHtmlContent())) {
+                successStoryModel.setHtmlContent(successStoryData.getHtmlContent());
+            }
+            
+            if (StringUtils.isNotEmpty(successStoryData.getVideoUrl())) {
+                successStoryModel.setVideoUrl(successStoryData.getVideoUrl());
+            }
+            
+            successStoryModel.setOrder(successStoryData.getOrder());
+            successStoryModel.setActive(successStoryData.isActive());
 
-            modelMapper.map(successStoryData, successStoryModel);
-
-            successStoryData.setResults(newResults);
-
+            // Update results
             successStoryModel.getResults().clear();
-            if (newResults != null && !newResults.isEmpty()) {
-                successStoryModel.getResults().addAll(newResults);
+            if (successStoryData.getResults() != null && !successStoryData.getResults().isEmpty()) {
+                successStoryModel.getResults().addAll(successStoryData.getResults());
             }
             
             if ((Objects.isNull(mediaFile) || mediaFile.isEmpty()) && !removeMedia) {
