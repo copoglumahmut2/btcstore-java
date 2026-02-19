@@ -1,6 +1,7 @@
 package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.CategoryData;
+import com.btc_store.domain.data.custom.DocumentData;
 import com.btc_store.domain.data.custom.ProductData;
 import com.btc_store.domain.data.custom.ProductFilterData;
 import com.btc_store.domain.enums.MediaCategory;
@@ -233,6 +234,20 @@ public class ProductFacadeImpl implements ProductFacade {
         return modelMapper.map(productModel.iterator().next(), ProductData.class);
     }
 
+    @Override
+    public List<DocumentData> getProductDocuments(String productCode) {
+        SiteModel siteModel = siteService.getCurrentSite();
+        ProductModel productModel = searchService.searchByCodeAndSite(ProductModel.class, productCode, siteModel);
+
+        if (productModel == null) {
+            throw new RuntimeException("Product not found: " + productCode);
+        }
+
+        var documentModels = productModel.getDocuments();
+
+        return List.of(modelMapper.map(documentModels, DocumentData[].class));
+    }
+
     private void handleProductImages(ProductData productData, ProductModel productModel, 
                                      List<MultipartFile> imageFiles, List<MediaModel> existingImages,
                                      SiteModel siteModel) {
@@ -330,3 +345,4 @@ public class ProductFacadeImpl implements ProductFacade {
         }
     }
 }
+

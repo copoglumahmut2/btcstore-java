@@ -64,7 +64,7 @@ public class StoreDocumentModel extends CodeBasedItemModel {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "document_products",
+            name = "product_documents",
             joinColumns = @JoinColumn(name = DOCUMENT_RELATION),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )

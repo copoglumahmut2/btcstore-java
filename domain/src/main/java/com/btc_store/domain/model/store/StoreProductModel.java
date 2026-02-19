@@ -2,6 +2,7 @@ package com.btc_store.domain.model.store;
 
 import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.model.custom.CategoryModel;
+import com.btc_store.domain.model.custom.DocumentModel;
 import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.extend.CodeBasedItemModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
@@ -101,6 +102,14 @@ public class StoreProductModel extends CodeBasedItemModel {
 
     @Column(name = "video_link", length = 1000)
     private String videoLink;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "product_documents",
+            joinColumns = @JoinColumn(name = PRODUCT_RELATION),
+            inverseJoinColumns = @JoinColumn(name = "document_id")
+    )
+    private List<DocumentModel> documents = new ArrayList<>();
 
     private Boolean active = true;
 
