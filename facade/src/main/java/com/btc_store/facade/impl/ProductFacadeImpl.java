@@ -234,20 +234,6 @@ public class ProductFacadeImpl implements ProductFacade {
         return modelMapper.map(productModel.iterator().next(), ProductData.class);
     }
 
-    @Override
-    public List<DocumentData> getProductDocuments(String productCode) {
-        SiteModel siteModel = siteService.getCurrentSite();
-        ProductModel productModel = searchService.searchByCodeAndSite(ProductModel.class, productCode, siteModel);
-
-        if (productModel == null) {
-            throw new RuntimeException("Product not found: " + productCode);
-        }
-
-        var documentModels = productModel.getDocuments();
-
-        return List.of(modelMapper.map(documentModels, DocumentData[].class));
-    }
-
     private void handleProductImages(ProductData productData, ProductModel productModel, 
                                      List<MultipartFile> imageFiles, List<MediaModel> existingImages,
                                      SiteModel siteModel) {
