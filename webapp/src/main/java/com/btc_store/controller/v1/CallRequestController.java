@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -64,16 +65,20 @@ public class CallRequestController {
         return responseData;
     }
     
-    @GetMapping(ControllerMappings.MY_REQUESTS)
-    @Operation(summary = "Get my assigned call requests")
+    @PostMapping(ControllerMappings.MY_REQUESTS + "/page/{page}")
+    @Operation(summary = "Get my assigned call requests with pagination")
     @PreAuthorize("isAuthenticated()")
-    public ServiceResponseData getMyCallRequests(@Parameter(description = "IsoCode for validation message internalization")
-                                                 @RequestParam(required = false) String isoCode) {
-        log.info("Inside getMyCallRequests of CallRequestController.");
-        var callRequests = callRequestFacade.getMyCallRequests();
+    public ServiceResponseData getMyCallRequestsPageable(
+            @Parameter(description = "Page number (1-based)") @PathVariable int page,
+            @Parameter(description = "IsoCode for validation message internalization") @RequestParam(required = false) String isoCode) {
+        log.info("Inside getMyCallRequestsPageable of CallRequestController - page: {}", page);
+        
+        var pageable = PageRequest.of(page - 1, 10);
+        var callRequestsPage = callRequestFacade.getMyCallRequestsPageable(pageable);
+        
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
-        responseData.setData(callRequests);
+        responseData.setData(callRequestsPage);
         return responseData;
     }
     

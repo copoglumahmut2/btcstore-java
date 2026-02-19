@@ -2,8 +2,11 @@ package com.btc_store.facade;
 
 import com.btc_store.domain.data.custom.CallRequestData;
 import com.btc_store.domain.data.custom.CallRequestHistoryData;
+import com.btc_store.domain.data.custom.pageable.PageableData;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -20,8 +23,8 @@ public interface CallRequestFacade {
     List<CallRequestData> getAllCallRequests();
     
     List<CallRequestData> getCallRequestsByStatus(CallRequestStatus status);
-    
-    List<CallRequestData> getMyCallRequests();
+
+    PageableData getMyCallRequestsPageable(Pageable pageable);
     
     void assignToGroup(Long callRequestId, String groupCode);
     

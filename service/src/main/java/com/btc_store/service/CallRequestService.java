@@ -4,6 +4,7 @@ import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestModel;
 import com.btc_store.domain.model.custom.SiteModel;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -22,6 +23,10 @@ public interface CallRequestService {
     List<CallRequestModel> getCallRequestsByAssignedGroup(String assignedGroup, CallRequestStatus status);
     
     List<CallRequestModel> getCallRequestsByAssignedUser(Long userId, CallRequestStatus status);
+    
+    List<CallRequestModel> getMyCallRequests();
+    
+    Page<CallRequestModel> getMyCallRequestsPageable(org.springframework.data.domain.Pageable pageable);
     
     void assignToGroup(Long callRequestId, String groupCode);
     

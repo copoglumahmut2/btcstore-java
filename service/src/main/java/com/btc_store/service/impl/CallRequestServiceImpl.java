@@ -5,21 +5,18 @@ import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestModel;
 import com.btc_store.domain.model.custom.SiteModel;
+import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.persistence.dao.CallRequestDao;
-import com.btc_store.service.CallRequestHistoryService;
-import com.btc_store.service.CallRequestService;
-import com.btc_store.service.EmailTemplateService;
-import com.btc_store.service.GenericTemplateService;
-import com.btc_store.service.ModelService;
-import com.btc_store.service.ParameterService;
-import com.btc_store.service.SiteService;
+import com.btc_store.service.*;
 import com.btc_store.service.user.UserGroupService;
 import com.btc_store.service.user.UserService;
 import com.btc_store.service.util.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +37,7 @@ public class CallRequestServiceImpl implements CallRequestService {
     private final GenericTemplateService genericTemplateService;
     private final EmailTemplateService emailTemplateService;
     private final SiteService siteService;
+    private final SearchService searchService;
     
     private static final String EMAIL_EXCHANGE = "email.exchange";
     private static final String EMAIL_ROUTING_KEY = "email.routing.key";
@@ -193,6 +191,101 @@ public class CallRequestServiceImpl implements CallRequestService {
     @Override
     public List<CallRequestModel> getCallRequestsByAssignedUser(Long userId, CallRequestStatus status) {
         return callRequestDao.findByAssignedUserIdAndStatus(userId, status);
+    }
+    
+    @Override
+    public List<CallRequestModel> getMyCallRequests() {
+        var currentUser = userService.getCurrentUser();
+        var siteModel = siteService.getCurrentSite();
+        
+        log.info("=== DEBUG: Getting call requests for user: {} (id: {})", 
+                currentUser.getUsername(), currentUser.getId());
+        
+        // Get user's groups
+        var userGroups = currentUser.getUserGroups();
+        log.info("=== DEBUG: User has {} groups", userGroups != null ? userGroups.size() : 0);
+        if (userGroups != null && !userGroups.isEmpty()) {
+            userGroups.forEach(g -> log.info("=== DEBUG: Group: {} (id: {})", g.getCode(), g.getId()));
+        }
+        
+        // Build query like WorkListHeaderModel
+        var queryBuilder = new StringBuilder();
+        var params = new HashMap<String, Object>();
+        
+        queryBuilder.append("SELECT DISTINCT cr FROM CallRequestModel cr ")
+                .append("LEFT JOIN cr.assignedUsers u ")
+                .append("LEFT JOIN cr.assignedGroups g ")
+                .append("WHERE cr.site = :site ")
+                .append("AND cr.status IN :statuses ")
+                .append("AND (u IN :users OR g IN :groups) ")
+                .append("ORDER BY cr.createdDate DESC");
+        
+        // Prepare user set
+        var allUsers = new HashSet<UserModel>();
+        allUsers.add(currentUser);
+        
+        // Prepare group set
+        var allGroups = new HashSet<com.btc_store.domain.model.custom.user.UserGroupModel>();
+        if (userGroups != null && !userGroups.isEmpty()) {
+            allGroups.addAll(userGroups);
+        }
+        
+        params.put("site", siteModel);
+        params.put("statuses", List.of(CallRequestStatus.ASSIGNED, CallRequestStatus.IN_PROGRESS));
+        params.put("users", allUsers);
+        params.put("groups", allGroups);
+        
+        log.info("=== DEBUG: Query: {}", queryBuilder.toString());
+        log.info("=== DEBUG: Site: {}, Statuses: {}, Users count: {}, Groups count: {}", 
+                siteModel.getCode(), params.get("statuses"), allUsers.size(), allGroups.size());
+        
+        var result = searchService.search(CallRequestModel.class, queryBuilder.toString(), params);
+        
+        log.info("=== DEBUG: Found {} call requests", result.size());
+        
+        return result;
+    }
+    
+    @Override
+    public Page<CallRequestModel> getMyCallRequestsPageable(Pageable pageable) {
+        var currentUser = userService.getCurrentUser();
+        var siteModel = siteService.getCurrentSite();
+        
+        // Get user's groups
+        var userGroups = currentUser.getUserGroups();
+        
+        // Build query exactly like WorkListHeaderModel
+        var queryBuilder = new StringBuilder();
+        var params = new HashMap<String, Object>();
+        
+        queryBuilder.append("select cr from CallRequestModel cr ")
+                .append("left join cr.assignedUsers u ")
+                .append("left join cr.assignedGroups g ")
+                .append("where cr.site = :site ")
+                .append("and cr.status in :statuses ")
+                .append("and (u in :users or g in :groups)");
+        
+        // Prepare user set
+        var allUsers = new HashSet<UserModel>();
+        allUsers.add(currentUser);
+        
+        // Prepare group set
+        var allGroups = new HashSet<UserGroupModel>();
+        if (userGroups != null && !userGroups.isEmpty()) {
+            allGroups.addAll(userGroups);
+        }
+        
+        params.put("site", siteModel);
+        params.put("statuses", List.of(CallRequestStatus.ASSIGNED, CallRequestStatus.IN_PROGRESS));
+        params.put("users", allUsers);
+        params.put("groups", allGroups);
+        
+        var result = searchService.search(CallRequestModel.class, pageable, queryBuilder.toString(), params);
+        
+        log.info("Found {} call requests (page) for user: {} (userId: {}, groups: {})", 
+                result.getTotalElements(), currentUser.getUsername(), currentUser.getId(), allGroups.size());
+        
+        return result;
     }
     
     @Override

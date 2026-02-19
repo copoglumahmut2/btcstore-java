@@ -2,6 +2,9 @@ package com.btc_store.domain.data.store;
 
 import com.btc_store.domain.data.custom.LegalDocumentData;
 import com.btc_store.domain.data.custom.ProductData;
+import com.btc_store.domain.data.custom.user.UserData;
+import com.btc_store.domain.data.custom.user.UserSummaryData;
+import com.btc_store.domain.data.extend.BaseLocalizedDescriptionData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
@@ -10,6 +13,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
@@ -22,42 +26,10 @@ public class StoreCallRequestData extends BackBaseData {
     private String message;
     private CallRequestPriority priority;
     private CallRequestStatus status;
-
-    private List<AssignedGroupInfo> assignedGroupsList;
-    private List<AssignedUserInfo> assignedUsersList;
-
-    private String assignedGroups;
-    private List<String> assignedUserNames;
+    private Set<BaseLocalizedDescriptionData> assignedGroups;
+    private Set<UserSummaryData> assignedUsers;
     private Date completedAt;
     private String ipAddress;
-
     private LegalDocumentData acceptedLegalDocument;
-    
     private ProductData product;
-
-    @Data
-    public static class AssignedGroupInfo {
-        private String code;
-        private String name;
-        private LocalizedDescription description;
-    }
-    
-    @Data
-    public static class AssignedUserInfo {
-        private Long id;
-        private String username;
-        private String email;
-        private String firstName;
-        private String lastName;
-    }
-    
-    @Data
-    public static class LocalizedDescription {
-        private String tr;
-        private String en;
-        private String de;
-        private String fr;
-        private String es;
-        private String it;
-    }
 }
