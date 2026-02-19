@@ -11,6 +11,8 @@ public interface CallRequestFacade {
     
     CallRequestData createCallRequest(CallRequestData callRequestData);
     
+    CallRequestData createProductContactRequest(String productCode, CallRequestData callRequestData);
+    
     CallRequestData updateCallRequest(CallRequestData callRequestData);
     
     CallRequestData getCallRequestById(Long id);

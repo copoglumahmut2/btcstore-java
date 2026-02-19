@@ -4,6 +4,7 @@ import com.btc_store.domain.constant.DomainConstant;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.LegalDocumentModel;
+import com.btc_store.domain.model.custom.ProductModel;
 import com.btc_store.domain.model.custom.extend.SiteBasedItemModel;
 import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.custom.user.UserModel;
@@ -80,4 +81,7 @@ public class StoreCallRequestModel extends StoreCodeBasedItemModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private LegalDocumentModel acceptedLegalDocument;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private ProductModel product;
 }

@@ -7,6 +7,7 @@ import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestHistoryModel;
 import com.btc_store.domain.model.custom.CallRequestModel;
 import com.btc_store.domain.model.custom.LegalDocumentModel;
+import com.btc_store.domain.model.custom.ProductModel;
 import com.btc_store.facade.CallRequestFacade;
 import com.btc_store.service.CallRequestHistoryService;
 import com.btc_store.service.CallRequestService;
@@ -18,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -64,6 +67,60 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
         }
         
         var savedModel = callRequestService.createCallRequest(callRequestModel);
+        return convertToData(savedModel);
+    }
+    
+    @Override
+    public CallRequestData createProductContactRequest(String productCode, CallRequestData callRequestData) {
+        var siteModel = siteService.getCurrentSite();
+        
+        CallRequestModel callRequestModel = modelMapper.map(callRequestData, CallRequestModel.class);
+        callRequestModel.setSite(siteModel);
+        callRequestModel.setCode(UUID.randomUUID().toString());
+        
+        // Find and set the product
+        ProductModel product = null;
+        try {
+            product = searchService.searchByCodeAndSite(
+                    ProductModel.class,
+                productCode,
+                siteModel
+            );
+            callRequestModel.setProduct(product);
+
+            
+            log.info("Creating call request for product: {} ({})", product.getCode(), product.getName());
+        } catch (Exception e) {
+            log.error("Could not find product with code: {}", productCode, e);
+            throw new RuntimeException("Product not found: " + productCode);
+        }
+        
+        // If acceptedLegalDocument is provided, find and set it by code
+        if (callRequestData.getAcceptedLegalDocument() != null && 
+            callRequestData.getAcceptedLegalDocument().getCode() != null) {
+            try {
+                var legalDocument = searchService.searchByCodeAndSite(
+                    LegalDocumentModel.class,
+                    callRequestData.getAcceptedLegalDocument().getCode(),
+                    siteModel
+                );
+                callRequestModel.setAcceptedLegalDocument(legalDocument);
+            } catch (Exception e) {
+                log.warn("Could not find legal document with code: {}", 
+                    callRequestData.getAcceptedLegalDocument().getCode(), e);
+            }
+        }
+        
+        // Assign to product responsible users if available
+        if (product != null && product.getResponsibleUsers() != null && !product.getResponsibleUsers().isEmpty()) {
+            callRequestModel.setAssignedUsers(new java.util.HashSet<>(product.getResponsibleUsers()));
+            callRequestModel.setStatus(CallRequestStatus.ASSIGNED);
+            log.info("Product contact request assigned to {} responsible users", product.getResponsibleUsers().size());
+        }
+        
+        // createCallRequest içinde otomatik olarak email gönderilecek
+        var savedModel = callRequestService.createCallRequest(callRequestModel);
+        
         return convertToData(savedModel);
     }
     
@@ -247,4 +304,5 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
         var historyModels = callRequestHistoryService.getHistoryByCallRequestId(callRequestId);
         return List.of(modelMapper.map(historyModels, CallRequestHistoryData[].class));
     }
+
 }

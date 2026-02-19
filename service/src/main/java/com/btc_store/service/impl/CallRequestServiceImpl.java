@@ -109,7 +109,34 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
 
-        if (CallRequestStatus.ASSIGNED.equals(saved.getStatus()) && !saved.getAssignedGroups().isEmpty()) {
+        // Eğer product varsa ve sorumlu kullanıcılar varsa, onlara email gönder
+        if (saved.getProduct() != null && 
+            saved.getProduct().getResponsibleUsers() != null && 
+            !saved.getProduct().getResponsibleUsers().isEmpty()) {
+            
+            // Product contact için history kaydı
+            String userNames = saved.getProduct().getResponsibleUsers().stream()
+                    .map(user -> user.getUsername())
+                    .collect(java.util.stream.Collectors.joining(", "));
+            
+            callRequestHistoryService.createHistory(
+                    saved,
+                    CallRequestActionType.ASSIGNED_TO_USER,
+                    "Otomatik olarak kullanıcılara atandı: " + userNames,
+                    null,
+                    "System",
+                    CallRequestStatus.PENDING,
+                    saved.getStatus(),
+                    null,
+                    siteModel
+            );
+            
+            publishProductContactEmail(saved, saved.getProduct());
+            
+            log.info("Call request {} ürün sorumlu kullanıcılarına atandı: {}", saved.getId(), userNames);
+        }
+        // Eğer gruplara atanmışsa, gruplara email gönder
+        else if (CallRequestStatus.ASSIGNED.equals(saved.getStatus()) && !saved.getAssignedGroups().isEmpty()) {
             String groupNames = saved.getAssignedGroups().stream()
                     .map(group -> group.getCode())
                     .collect(java.util.stream.Collectors.joining(", "));
@@ -750,6 +777,93 @@ public class CallRequestServiceImpl implements CallRequestService {
             log.info("Call request assignment email sent to group: {} - {} users - {} - {}", groupCode, userEmails.size(), callRequestModel.getId(), eventType);
         } catch (Exception e) {
             log.error("Call request event gruba gönderilemedi: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Send email notification to product responsible users
+     */
+    private void publishProductContactEmail(CallRequestModel callRequestModel, com.btc_store.domain.model.custom.ProductModel product) {
+        try {
+            // Get responsible users' emails
+            List<String> userEmails = product.getResponsibleUsers().stream()
+                    .filter(user -> user.getEmail() != null && !user.getEmail().isEmpty())
+                    .map(UserModel::getEmail)
+                    .distinct()
+                    .toList();
+            
+            if (userEmails.isEmpty()) {
+                log.warn("No email addresses found for product responsible users");
+                return;
+            }
+            
+            var siteModel = siteService.getCurrentSite();
+            
+            // Get email template from database - ürün iletişimi için özel template
+            String templateCode = "product_contact_request";
+            var emailTemplate = emailTemplateService.getEmailTemplateByCode(templateCode, callRequestModel.getSite());
+            
+            // Extract variables using generic template service
+            Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
+            
+            // Product information
+            variables.put("productCode", product.getCode());
+            variables.put("productName", product.getName() != null && product.getName().getTr() != null 
+                ? product.getName().getTr() : product.getCode());
+            variables.put("productDescription", product.getShortDescription() != null && product.getShortDescription().getTr() != null 
+                ? product.getShortDescription().getTr() : "");
+            
+            // Add priority translation based on site locale
+            String[] priorityInfo = getPriorityInfo(callRequestModel.getPriority(), callRequestModel.getSite());
+            variables.put("priority", priorityInfo[0]);
+            variables.put("priorityClass", priorityInfo[1]);
+            
+            // Format created date if exists
+            if (callRequestModel.getCreatedDate() != null) {
+                variables.put("createdDate", new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(callRequestModel.getCreatedDate()));
+            } else {
+                variables.put("createdDate", "");
+            }
+            
+            // Add call request URL
+            String baseUrl = parameterService.getValueByCode("site.backoffice.url", callRequestModel.getSite());
+            if (baseUrl == null || baseUrl.isEmpty()) {
+                baseUrl = "http://localhost:3000";
+            }
+            variables.put("callRequestUrl", baseUrl + "/call-requests/" + callRequestModel.getId());
+            
+            // Process template with variables
+            String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
+            String processedBody = genericTemplateService.processTemplate(emailTemplate.getBody(), variables);
+            
+            // Create event DTO for RabbitMQ
+            Map<String, Object> event = new HashMap<>();
+            event.put("subject", processedSubject);
+            event.put("body", processedBody);
+            event.put("recipients", userEmails);
+            event.put("siteCode", callRequestModel.getSite().getCode());
+            event.put("source", "ProductContact");
+            event.put("sourceId", callRequestModel.getId());
+            
+            // Send to RabbitMQ
+            rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
+            
+            // Create history for email sent
+            callRequestHistoryService.createHistory(
+                    callRequestModel,
+                    CallRequestActionType.EMAIL_SENT,
+                    "Ürün sorumlu kullanıcılarına mail gönderildi: " + String.join(", ", userEmails),
+                    null,
+                    "System",
+                    null,
+                    null,
+                    null,
+                    siteModel
+            );
+            
+            log.info("Product contact email notification sent for call request: {} to {} users", callRequestModel.getId(), userEmails.size());
+        } catch (Exception e) {
+            log.error("Failed to send product contact email: {}", e.getMessage(), e);
         }
     }
 }

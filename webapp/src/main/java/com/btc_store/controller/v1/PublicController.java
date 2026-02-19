@@ -189,4 +189,19 @@ public class PublicController {
         responseData.setData(product);
         return responseData;
     }
+    
+    @PostMapping("/products/{code}/contact")
+    @Operation(summary = "Create call request for a specific product (Public - No authentication required)")
+    public ServiceResponseData createProductContactRequest(@Parameter(description = "Product code") @PathVariable String code,
+                                                           @Parameter(description = "Call request data to create")
+                                                           @Validated @RequestBody CallRequestData callRequestData,
+                                                           @Parameter(description = "IsoCode for validation message internalization")
+                                                           @RequestParam(required = false) String isoCode) {
+        log.info("Inside createProductContactRequest of PublicController for product: {}", code);
+        var savedCallRequest = callRequestFacade.createProductContactRequest(code, callRequestData);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(savedCallRequest);
+        return responseData;
+    }
 }

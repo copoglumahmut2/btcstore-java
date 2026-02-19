@@ -1,6 +1,7 @@
 package com.btc_store.domain.data.store;
 
 import com.btc_store.domain.data.custom.LegalDocumentData;
+import com.btc_store.domain.data.custom.ProductData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
@@ -31,6 +32,8 @@ public class StoreCallRequestData extends BackBaseData {
     private String ipAddress;
 
     private LegalDocumentData acceptedLegalDocument;
+    
+    private ProductData product;
 
     @Data
     public static class AssignedGroupInfo {
