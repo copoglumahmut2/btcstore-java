@@ -81,9 +81,9 @@ public class DocumentController {
         return responseData;
     }
 
-    @GetMapping("/product/" + ControllerMappings.CODE)
+    @GetMapping("/product" + ControllerMappings.CODE)
     @Operation(summary = "Get documents by product code - requires authentication")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority(@authorizationConstants.generateRoles('DocumentModel', @authorizationConstants.READ))")
     public ServiceResponseData getDocumentsByProductCode(@Parameter(description = "Product Code") @PathVariable String code,
                                                          @Parameter(description = "IsoCode for validation message internalization")
                                                          @RequestParam(required = false) String isoCode) {
