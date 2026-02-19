@@ -4,6 +4,7 @@ import com.btc_store.domain.data.custom.DashboardModuleData;
 import com.btc_store.domain.enums.DashboardModuleType;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.DashboardModuleModel;
+import com.btc_store.domain.model.custom.extend.ItemModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.DashboardModuleFacade;
 import com.btc_store.service.ModelService;
@@ -11,6 +12,8 @@ import com.btc_store.service.SearchService;
 import com.btc_store.service.SiteService;
 import com.btc_store.service.user.UserService;
 import com.btc_store.service.util.ServiceUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -29,6 +32,7 @@ public class DashboardModuleFacadeImpl implements DashboardModuleFacade {
     private final SiteService siteService;
     private final UserService userService;
     private final ModelMapper modelMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public List<DashboardModuleData> getAllDashboardModules() {
@@ -102,19 +106,48 @@ public class DashboardModuleFacadeImpl implements DashboardModuleFacade {
     @Override
     public List<DashboardModuleData> getAuthorizedDashboardModulesWithCounts(DashboardModuleType moduleType) {
         var authorizedModules = getAuthorizedDashboardModulesByType(moduleType);
+        var siteModel = siteService.getCurrentSite();
         
         // Her modül için count hesapla
         authorizedModules.forEach(module -> {
             if (module.getSearchItemType() != null && module.getShowCount() != null && module.getShowCount()) {
                 try {
-                    // Model class'ını bul
-                    Class<?> modelClass = Class.forName("com.btc_store.domain.model.custom." + module.getSearchItemType());
+                    // Model class'ını dinamik olarak yükle
+                    @SuppressWarnings("unchecked")
+                    Class<? extends ItemModel> modelClass = (Class<? extends ItemModel>) 
+                            Class.forName("com.btc_store.domain.model.custom." + module.getSearchItemType());
                     
                     // SearchFilters'ı parse et
                     Map<String, Object> filters = new HashMap<>();
-                    if (module.getSearchFilters() != null && !module.getSearchFilters().isEmpty()) {
-                        // JSON parse etmek yerine basit bir yaklaşım - gerekirse ObjectMapper kullanılabilir
-                        // Şimdilik boş filtre ile devam edelim
+                    filters.put(StoreSiteBasedItemModel.Fields.site, siteModel);
+                    
+                    if (module.getSearchFilters() != null && !module.getSearchFilters().trim().isEmpty()) {
+                        try {
+                            // JSON'dan Map'e parse et
+                            Map<String, Object> parsedFilters = objectMapper.readValue(
+                                    module.getSearchFilters(), 
+                                    new TypeReference<Map<String, Object>>() {}
+                            );
+                            
+                            // "filters" array'i varsa onu işle
+                            if (parsedFilters.containsKey("filters") && parsedFilters.get("filters") instanceof List) {
+                                @SuppressWarnings("unchecked")
+                                List<Map<String, Object>> filterList = (List<Map<String, Object>>) parsedFilters.get("filters");
+                                
+                                for (Map<String, Object> filter : filterList) {
+                                    String name = (String) filter.get("name");
+                                    Object value = filter.get("value");
+                                    if (name != null && value != null) {
+                                        filters.put(name, value);
+                                    }
+                                }
+                            } else {
+                                // Direkt map olarak ekle
+                                filters.putAll(parsedFilters);
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to parse searchFilters for module {}: {}", module.getCode(), e.getMessage());
+                        }
                     }
                     
                     // SearchService ile count al
