@@ -99,6 +99,9 @@ public class StoreProductModel extends CodeBasedItemModel {
     @Column(name = "feature", length = 500)
     private List<String> features = new ArrayList<>();
 
+    @Column(name = "video_link", length = 1000)
+    private String videoLink;
+
     private Boolean active = true;
 
     private Boolean deleted = false;

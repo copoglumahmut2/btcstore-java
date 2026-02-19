@@ -25,5 +25,7 @@ public class StoreProductData extends BaseData {
     private List<String> imageCodesInOrder;
     private Integer mainImageIndex;
     private List<String> features = new ArrayList<>();
+    private String videoLink;
     private Boolean active;
+    private Boolean deleted;
 }

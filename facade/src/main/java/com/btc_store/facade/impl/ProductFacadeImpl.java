@@ -160,8 +160,12 @@ public class ProductFacadeImpl implements ProductFacade {
                 }
             }
         } else {
+            // Include ALL products, even those without categories
             allProductsList = new ArrayList<>(allProducts);
         }
+        
+        // Sort by ID for consistent ordering
+        allProductsList.sort(Comparator.comparing(ProductModel::getId));
         
         // Manual pagination
         int totalProducts = allProductsList.size();
@@ -186,7 +190,8 @@ public class ProductFacadeImpl implements ProductFacade {
         filterData.setPageSize(pageSize);
         filterData.setTotalPages((int) Math.ceil((double) totalProducts / pageSize));
         
-        // Get available categories from ALL products
+        // Get available categories from products in the result set (allProductsList)
+        // This ensures only categories that have products are shown
         Set<CategoryModel> categorySet = new HashSet<>();
         for (ProductModel product : allProductsList) {
             if (CollectionUtils.isNotEmpty(product.getCategories())) {
@@ -195,6 +200,9 @@ public class ProductFacadeImpl implements ProductFacade {
                         .collect(Collectors.toSet()));
             }
         }
+        
+        log.info("Category filter: {}, Products found: {}, Available categories: {}", 
+                categoryCode, allProductsList.size(), categorySet.size());
         
         List<CategoryModel> sortedCategories = categorySet.stream()
                 .sorted(Comparator.comparing(cat -> cat.getOrder() != null ? cat.getOrder() : Integer.MAX_VALUE))
