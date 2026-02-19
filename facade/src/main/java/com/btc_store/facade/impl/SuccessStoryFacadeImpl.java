@@ -75,27 +75,6 @@ public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
             
             MediaModel mediaToKeep = successStoryModel.getMedia();
 
-            // Update basic fields
-            if (StringUtils.isNotEmpty(successStoryData.getCompany())) {
-                successStoryModel.setCompany(successStoryData.getCompany());
-            }
-            
-            if (Objects.nonNull(successStoryData.getTitle())) {
-                successStoryModel.setTitle(successStoryData.getTitle());
-            }
-            
-            if (Objects.nonNull(successStoryData.getHtmlContent())) {
-                successStoryModel.setHtmlContent(successStoryData.getHtmlContent());
-            }
-            
-            if (StringUtils.isNotEmpty(successStoryData.getVideoUrl())) {
-                successStoryModel.setVideoUrl(successStoryData.getVideoUrl());
-            }
-            
-            successStoryModel.setOrder(successStoryData.getOrder());
-            successStoryModel.setActive(successStoryData.isActive());
-
-            // Update results
             successStoryModel.getResults().clear();
             if (successStoryData.getResults() != null && !successStoryData.getResults().isEmpty()) {
                 successStoryModel.getResults().addAll(successStoryData.getResults());

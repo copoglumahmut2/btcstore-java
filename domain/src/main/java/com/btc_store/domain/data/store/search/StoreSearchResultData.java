@@ -77,4 +77,11 @@ public class StoreSearchResultData extends BackBaseData {
     private String ipAddress;
     private LegalDocumentData acceptedLegalDocument;
     private ProductData product;
+    private String link;
+    private String icon;
+    private Integer displayOrder = 0;
+    private Boolean showCount = true;
+    private String searchItemType;
+    private String searchFilters;
+    private DashboardModuleType moduleType;
 }
