@@ -173,11 +173,6 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
                 .map(user -> user.getUsername())
                 .toList();
         data.setAssignedUserNames(userNames);
-        
-        // Set first user for backward compatibility
-        var firstUser = model.getAssignedUsers().iterator().next();
-        data.setAssignedUserId(firstUser.getId());
-        data.setAssignedUserName(firstUser.getUsername());
     }
     
     private void mapAssignedGroups(CallRequestModel model, CallRequestData data) {
@@ -210,9 +205,6 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
                 .map(group -> group.getCode())
                 .collect(java.util.stream.Collectors.joining(";"));
         data.setAssignedGroups(groupCodes);
-        
-        // Set first group for backward compatibility
-        data.setAssignedGroup(model.getAssignedGroups().iterator().next().getCode());
     }
     
     @Override

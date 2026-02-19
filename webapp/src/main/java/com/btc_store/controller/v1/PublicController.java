@@ -10,6 +10,7 @@ import com.btc_store.facade.CategoryFacade;
 import com.btc_store.facade.LegalDocumentFacade;
 import com.btc_store.facade.MenuLinkItemFacade;
 import com.btc_store.facade.PartnerFacade;
+import com.btc_store.facade.ProductFacade;
 import com.btc_store.facade.ReferenceFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,7 @@ public class PublicController {
     private final com.btc_store.facade.SiteConfigurationFacade siteConfigurationFacade;
     private final CallRequestFacade callRequestFacade;
     private final LegalDocumentFacade legalDocumentFacade;
+    private final ProductFacade productFacade;
 
     @GetMapping("/banners")
     @Operation(summary = "Get all active banners for public display")
@@ -154,6 +156,37 @@ public class PublicController {
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(privacyPolicyDocument);
+        return responseData;
+    }
+    
+    @GetMapping("/products")
+    @Operation(summary = "Get all active products with optional category filter and available categories for filtering")
+    public ServiceResponseData getProducts(@Parameter(description = "Category code to filter products (optional)")
+                                           @RequestParam(required = false) String category,
+                                           @Parameter(description = "Page number (starts from 1)")
+                                           @RequestParam(required = false, defaultValue = "1") Integer page,
+                                           @Parameter(description = "Page size (default 20)")
+                                           @RequestParam(required = false, defaultValue = "20") Integer size,
+                                           @Parameter(description = "IsoCode for validation message internalization")
+                                           @RequestParam(required = false) String isoCode) {
+        log.info("Inside getProducts of PublicController with category: {}, page: {}, size: {}", category, page, size);
+        var filterData = productFacade.getProductsWithFilters(category, page, size);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(filterData);
+        return responseData;
+    }
+    
+    @GetMapping("/products/{code}")
+    @Operation(summary = "Get active product by code for public display")
+    public ServiceResponseData getProductByCode(@Parameter(description = "Product code") @PathVariable String code,
+                                                @Parameter(description = "IsoCode for validation message internalization")
+                                                @RequestParam(required = false) String isoCode) {
+        log.info("Inside getProductByCode of PublicController with code: {}", code);
+        var product = productFacade.getActiveProductByCode(code);
+        var responseData = new ServiceResponseData();
+        responseData.setStatus(ProcessStatus.SUCCESS);
+        responseData.setData(product);
         return responseData;
     }
 }
