@@ -1,16 +1,14 @@
 package com.btc_store.domain.data.store.search;
 
 import com.btc_store.domain.data.custom.CategoryData;
+import com.btc_store.domain.data.custom.LegalDocumentData;
 import com.btc_store.domain.data.custom.ProductData;
 import com.btc_store.domain.data.custom.localize.LocalizeData;
 import com.btc_store.domain.data.custom.media.MediaData;
-import com.btc_store.domain.data.custom.user.UserData;
+import com.btc_store.domain.data.custom.user.UserSummaryData;
 import com.btc_store.domain.data.extend.BaseLocalizedDescriptionData;
 import com.btc_store.domain.data.extend.back.BackBaseData;
-import com.btc_store.domain.enums.DataType;
-import com.btc_store.domain.enums.LegalDocumentType;
-import com.btc_store.domain.enums.ParameterType;
-import com.btc_store.domain.model.custom.localize.Localized;
+import com.btc_store.domain.enums.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -57,7 +55,7 @@ public class StoreSearchResultData extends BackBaseData {
     private MediaData picture;
     private LocalizeData shortDescription;
     private Set<CategoryData> categories;
-    private Set<UserData> responsibleUsers;
+    private Set<UserSummaryData> responsibleUsers;
     private MediaData mainImage;
     private List<MediaData> medias;
     private List<ProductData> products;
@@ -66,4 +64,17 @@ public class StoreSearchResultData extends BackBaseData {
     private Boolean isCurrentVersion;
     private Date effectiveDate;
     private String version;
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
+    private String subject;
+    private String message;
+    private CallRequestPriority priority;
+    private CallRequestStatus status;
+    private Set<BaseLocalizedDescriptionData> assignedGroups;
+    private Set<UserSummaryData> assignedUsers;
+    private Date completedAt;
+    private String ipAddress;
+    private LegalDocumentData acceptedLegalDocument;
+    private ProductData product;
 }
