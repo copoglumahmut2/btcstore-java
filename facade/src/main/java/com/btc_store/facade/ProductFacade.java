@@ -1,6 +1,5 @@
 package com.btc_store.facade;
 
-import com.btc_store.domain.data.custom.DocumentData;
 import com.btc_store.domain.data.custom.ProductData;
 import com.btc_store.domain.data.custom.ProductFilterData;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +16,4 @@ public interface ProductFacade {
     List<ProductData> getActiveProducts();
     ProductFilterData getProductsWithFilters(String categoryCode, Integer page, Integer size);
     ProductData getActiveProductByCode(String code);
-    
-    // Document endpoints
-    List<DocumentData> getProductDocuments(String productCode);
 }

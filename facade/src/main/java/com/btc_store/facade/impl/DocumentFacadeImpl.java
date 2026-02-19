@@ -3,11 +3,9 @@ package com.btc_store.facade.impl;
 import com.btc_store.domain.data.custom.DocumentData;
 import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
-import com.btc_store.domain.model.custom.CmsCategoryModel;
 import com.btc_store.domain.model.custom.DocumentModel;
 import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.ProductModel;
-import com.btc_store.domain.model.custom.SiteModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.DocumentFacade;
 import com.btc_store.service.*;
@@ -122,5 +120,19 @@ public class DocumentFacadeImpl implements DocumentFacade {
         documentModel.setDeleted(true);
         documentModel.setActive(false);
         modelService.save(documentModel);
+    }
+
+    @Override
+    public List<DocumentData> getDocumentsByProductCode(String productCode) {
+        var siteModel = siteService.getCurrentSite();
+        var productModel = searchService.searchByCodeAndSite(ProductModel.class, productCode, siteModel);
+
+        if (productModel == null) {
+            throw new RuntimeException("Product not found: " + productCode);
+        }
+
+        var documentModels = productModel.getDocuments();
+
+        return List.of(modelMapper.map(documentModels, DocumentData[].class));
     }
 }

@@ -85,18 +85,4 @@ public class ProductController {
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
     }
-
-    @GetMapping(ControllerMappings.CODE + "/documents")
-    @Operation(summary = "Get documents for a product - requires authentication")
-    @PreAuthorize("isAuthenticated()")
-    public ServiceResponseData getProductDocuments(@Parameter(description = "Product Code") @PathVariable String code,
-                                                   @Parameter(description = "IsoCode for validation message internalization")
-                                                   @RequestParam(required = false) String isoCode) {
-        log.info("Inside getProductDocuments of ProductController with code: {}", code);
-        var documents = productFacade.getProductDocuments(code);
-        var responseData = new ServiceResponseData();
-        responseData.setStatus(ProcessStatus.SUCCESS);
-        responseData.setData(documents);
-        return responseData;
-    }
 }

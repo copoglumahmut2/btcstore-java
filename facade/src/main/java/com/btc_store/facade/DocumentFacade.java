@@ -10,4 +10,5 @@ public interface DocumentFacade {
     DocumentData getDocumentByCode(String code);
     DocumentData saveDocument(DocumentData documentData, List<MultipartFile> mediaFiles);
     void deleteDocument(String code);
+    List<DocumentData> getDocumentsByProductCode(String productCode);
 }
