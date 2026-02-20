@@ -1,7 +1,10 @@
 package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.DashboardModuleData;
+import com.btc_store.domain.data.custom.search.SearchFilter;
+import com.btc_store.domain.data.custom.search.SearchFormData;
 import com.btc_store.domain.enums.DashboardModuleType;
+import com.btc_store.domain.enums.SearchCondition;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.DashboardModuleModel;
 import com.btc_store.domain.model.custom.extend.ItemModel;
@@ -14,10 +17,14 @@ import com.btc_store.service.user.UserService;
 import com.btc_store.service.util.ServiceUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import constant.PackageConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import util.StoreClassUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -112,49 +119,26 @@ public class DashboardModuleFacadeImpl implements DashboardModuleFacade {
         authorizedModules.forEach(module -> {
             if (module.getSearchItemType() != null && module.getShowCount() != null && module.getShowCount()) {
                 try {
-                    // Model class'ını dinamik olarak yükle
+                    // Model class'ını al
                     @SuppressWarnings("unchecked")
-                    Class<? extends ItemModel> modelClass = (Class<? extends ItemModel>) 
-                            Class.forName("com.btc_store.domain.model.custom." + module.getSearchItemType());
-                    
-                    // SearchFilters'ı parse et
-                    Map<String, Object> filters = new HashMap<>();
-                    filters.put(StoreSiteBasedItemModel.Fields.site, siteModel);
-                    
+                    var modelClass = (Class<ItemModel>) StoreClassUtils.getClassForPackage(
+                            module.getSearchItemType(), 
+                            PackageConstant.DOMAIN_PACKAGE
+                    );
+
+                    // SearchFormData'yı JSON'dan direkt map et
+                    SearchFormData searchFormData;
                     if (module.getSearchFilters() != null && !module.getSearchFilters().trim().isEmpty()) {
-                        try {
-                            // JSON'dan Map'e parse et
-                            Map<String, Object> parsedFilters = objectMapper.readValue(
-                                    module.getSearchFilters(), 
-                                    new TypeReference<Map<String, Object>>() {}
-                            );
-                            
-                            // "filters" array'i varsa onu işle
-                            if (parsedFilters.containsKey("filters") && parsedFilters.get("filters") instanceof List) {
-                                @SuppressWarnings("unchecked")
-                                List<Map<String, Object>> filterList = (List<Map<String, Object>>) parsedFilters.get("filters");
-                                
-                                for (Map<String, Object> filter : filterList) {
-                                    String name = (String) filter.get("name");
-                                    Object value = filter.get("value");
-                                    if (name != null && value != null) {
-                                        filters.put(name, value);
-                                    }
-                                }
-                            } else {
-                                // Direkt map olarak ekle
-                                filters.putAll(parsedFilters);
-                            }
-                        } catch (Exception e) {
-                            log.warn("Failed to parse searchFilters for module {}: {}", module.getCode(), e.getMessage());
-                        }
+                        searchFormData = objectMapper.readValue(module.getSearchFilters(), SearchFormData.class);
+                    } else {
+                        searchFormData = new SearchFormData();
                     }
                     
                     // SearchService ile count al
-                    var results = searchService.search(modelClass, filters, SearchOperator.AND);
-                    module.setCount((long) results.size());
+                    var results = searchService.search(modelClass, Pageable.ofSize(50000), searchFormData, siteModel);
+                    module.setCount((long) results.getTotalElements());
                     
-                } catch (ClassNotFoundException e) {
+                } catch (RuntimeException e) {
                     log.error("Model class not found: {}", module.getSearchItemType(), e);
                     module.setCount(0L);
                 } catch (Exception e) {
