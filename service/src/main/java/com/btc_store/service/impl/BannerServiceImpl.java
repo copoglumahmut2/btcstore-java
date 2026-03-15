@@ -51,16 +51,4 @@ public class BannerServiceImpl implements BannerService {
         Assert.notNull(siteModel, "Site must not be null");
         return bannerDao.getAllBySiteAndActiveTrueOrderByOrderAsc(siteModel);
     }
-
-    @Override
-    public BannerModel saveBanner(BannerModel bannerModel) {
-        Assert.notNull(bannerModel, "Banner model must not be null");
-        return bannerDao.save(bannerModel);
-    }
-
-    @Override
-    public void deleteBanner(BannerModel bannerModel) {
-        Assert.notNull(bannerModel, "Banner model must not be null");
-        bannerDao.delete(bannerModel);
-    }
 }

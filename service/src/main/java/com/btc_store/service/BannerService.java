@@ -16,8 +16,4 @@ public interface BannerService {
     List<BannerModel> getAllBannersOrdered(SiteModel siteModel);
 
     List<BannerModel> getActiveBannersOrdered(SiteModel siteModel);
-
-    BannerModel saveBanner(BannerModel bannerModel);
-
-    void deleteBanner(BannerModel bannerModel);
 }

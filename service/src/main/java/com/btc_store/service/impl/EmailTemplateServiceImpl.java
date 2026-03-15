@@ -39,18 +39,6 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
     }
     
     @Override
-    @Transactional
-    public EmailTemplateModel saveEmailTemplate(EmailTemplateModel emailTemplateModel) {
-        return emailTemplateDao.save(emailTemplateModel);
-    }
-    
-    @Override
-    @Transactional
-    public void deleteEmailTemplate(Long id) {
-        emailTemplateDao.deleteById(id);
-    }
-    
-    @Override
     public String processTemplate(String templateBody, Map<String, String> variables) {
         if (templateBody == null || variables == null) {
             return templateBody;

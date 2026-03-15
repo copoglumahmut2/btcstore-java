@@ -13,9 +13,5 @@ public interface EmailTemplateService {
     
     List<EmailTemplateModel> getActiveEmailTemplatesBySite(SiteModel siteModel);
     
-    EmailTemplateModel saveEmailTemplate(EmailTemplateModel emailTemplateModel);
-    
-    void deleteEmailTemplate(Long id);
-    
     String processTemplate(String templateBody, java.util.Map<String, String> variables);
 }

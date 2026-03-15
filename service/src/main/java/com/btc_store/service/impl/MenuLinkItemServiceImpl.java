@@ -78,17 +78,4 @@ public class MenuLinkItemServiceImpl implements MenuLinkItemService {
         ServiceUtils.checkItemModelIsExist(menuModel, MenuLinkItemModel.class, siteModel, code);
         return menuModel;
     }
-
-    @Override
-    public MenuLinkItemModel saveMenu(MenuLinkItemModel menuModel) {
-        Assert.notNull(menuModel, "Menu model must not be null");
-        return menuDao.save(menuModel);
-    }
-
-    @Override
-    public void deleteMenu(String code) {
-        MenuLinkItemModel menuModel = getMenuByCode(code);
-        Assert.notNull(menuModel, "Menu model must not be null");
-        menuDao.delete(menuModel);
-    }
 }

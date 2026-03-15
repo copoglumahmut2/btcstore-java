@@ -6,6 +6,4 @@ import com.btc_store.domain.model.custom.SiteModel;
 public interface SiteConfigurationService {
 
     SiteConfigurationModel getSiteConfiguration(SiteModel siteModel);
-
-    SiteConfigurationModel saveSiteConfiguration(SiteConfigurationModel siteConfigurationModel);
 }

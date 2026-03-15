@@ -5,7 +5,6 @@ import com.btc_store.domain.data.custom.CallRequestHistoryData;
 import com.btc_store.domain.data.custom.pageable.PageableData;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

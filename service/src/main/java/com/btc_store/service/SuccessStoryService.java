@@ -16,8 +16,4 @@ public interface SuccessStoryService {
     List<SuccessStoryModel> getAllSuccessStoriesOrdered(SiteModel siteModel);
 
     List<SuccessStoryModel> getActiveSuccessStoriesOrdered(SiteModel siteModel);
-
-    SuccessStoryModel saveSuccessStory(SuccessStoryModel successStoryModel);
-
-    void deleteSuccessStory(SuccessStoryModel successStoryModel);
 }

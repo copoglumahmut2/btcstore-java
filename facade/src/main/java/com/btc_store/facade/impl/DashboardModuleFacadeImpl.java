@@ -1,13 +1,12 @@
 package com.btc_store.facade.impl;
 
 import com.btc_store.domain.data.custom.DashboardModuleData;
-import com.btc_store.domain.data.custom.search.SearchFilter;
 import com.btc_store.domain.data.custom.search.SearchFormData;
 import com.btc_store.domain.enums.DashboardModuleType;
-import com.btc_store.domain.enums.SearchCondition;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.DashboardModuleModel;
 import com.btc_store.domain.model.custom.extend.ItemModel;
+import com.btc_store.domain.model.custom.user.UserGroupModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.DashboardModuleFacade;
 import com.btc_store.service.ModelService;
@@ -15,12 +14,10 @@ import com.btc_store.service.SearchService;
 import com.btc_store.service.SiteService;
 import com.btc_store.service.user.UserService;
 import com.btc_store.service.util.ServiceUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import constant.PackageConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -175,9 +172,8 @@ public class DashboardModuleFacadeImpl implements DashboardModuleFacade {
             modelMapper.map(dashboardModuleData, dashboardModuleModel);
         }
 
-        // UserGroup'ları set et
         if (dashboardModuleData.getUserGroups() != null) {
-            Set<com.btc_store.domain.model.custom.user.UserGroupModel> userGroups = new HashSet<>();
+            Set<UserGroupModel> userGroups = new HashSet<>();
             dashboardModuleData.getUserGroups().forEach(ugData -> {
                 var userGroup = searchService.searchByCodeAndSite(
                         com.btc_store.domain.model.custom.user.UserGroupModel.class, 

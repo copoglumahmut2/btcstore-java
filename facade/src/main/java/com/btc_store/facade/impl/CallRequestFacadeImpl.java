@@ -1,6 +1,5 @@
 package com.btc_store.facade.impl;
 
-import com.btc_store.domain.data.custom.BannerData;
 import com.btc_store.domain.data.custom.CallRequestData;
 import com.btc_store.domain.data.custom.CallRequestHistoryData;
 import com.btc_store.domain.data.custom.pageable.PageableData;
@@ -38,12 +37,6 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     private final SearchService searchService;
     protected final PageableProvider pageableProvider;
     
-    // Configure ModelMapper for CallRequest conversion
-    private void configureModelMapper() {
-        // This will be called once to configure custom mappings if needed
-        // For now, we rely on default mapping + manual collection handling
-    }
-    
     @Override
     public CallRequestData createCallRequest(CallRequestData callRequestData) {
         var siteModel = siteService.getCurrentSite();
@@ -51,8 +44,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
         CallRequestModel callRequestModel = modelMapper.map(callRequestData, CallRequestModel.class);
         callRequestModel.setSite(siteModel);
         callRequestModel.setCode(UUID.randomUUID().toString());
-        
-        // If acceptedLegalDocument is provided, find and set it by code
+
         if (callRequestData.getAcceptedLegalDocument() != null && 
             callRequestData.getAcceptedLegalDocument().getCode() != null) {
             try {
@@ -79,8 +71,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
         CallRequestModel callRequestModel = modelMapper.map(callRequestData, CallRequestModel.class);
         callRequestModel.setSite(siteModel);
         callRequestModel.setCode(UUID.randomUUID().toString());
-        
-        // Find and set the product
+
         ProductModel product = null;
         try {
             product = searchService.searchByCodeAndSite(
@@ -96,8 +87,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
             log.error("Could not find product with code: {}", productCode, e);
             throw new RuntimeException("Product not found: " + productCode);
         }
-        
-        // If acceptedLegalDocument is provided, find and set it by code
+
         if (callRequestData.getAcceptedLegalDocument() != null && 
             callRequestData.getAcceptedLegalDocument().getCode() != null) {
             try {
@@ -112,15 +102,13 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
                     callRequestData.getAcceptedLegalDocument().getCode(), e);
             }
         }
-        
-        // Assign to product responsible users if available
+
         if (product != null && product.getResponsibleUsers() != null && !product.getResponsibleUsers().isEmpty()) {
             callRequestModel.setAssignedUsers(new java.util.HashSet<>(product.getResponsibleUsers()));
             callRequestModel.setStatus(CallRequestStatus.ASSIGNED);
             log.info("Product contact request assigned to {} responsible users", product.getResponsibleUsers().size());
         }
-        
-        // createCallRequest içinde otomatik olarak email gönderilecek
+
         var savedModel = callRequestService.createCallRequest(callRequestModel);
 
         return modelMapper.map(savedModel, CallRequestData.class);

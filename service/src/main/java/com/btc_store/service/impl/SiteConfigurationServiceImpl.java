@@ -21,10 +21,4 @@ public class SiteConfigurationServiceImpl implements SiteConfigurationService {
         Assert.notNull(siteModel, "Site must not be null");
         return siteConfigurationDao.findBySite(siteModel).orElse(null);
     }
-
-    @Override
-    public SiteConfigurationModel saveSiteConfiguration(SiteConfigurationModel siteConfigurationModel) {
-        Assert.notNull(siteConfigurationModel, "Site configuration model must not be null");
-        return siteConfigurationDao.save(siteConfigurationModel);
-    }
 }
