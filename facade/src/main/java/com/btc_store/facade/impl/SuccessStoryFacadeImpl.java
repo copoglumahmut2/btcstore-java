@@ -72,14 +72,16 @@ public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
         } else {
             successStoryModel = searchService.searchByCodeAndSite(SuccessStoryModel.class, successStoryData.getCode(), siteModel);
             oldMedia = successStoryModel.getMedia();
-            
+
             MediaModel mediaToKeep = successStoryModel.getMedia();
+            List<String> resultsToKeep = successStoryData.getResults() != null
+                    ? List.copyOf(successStoryData.getResults())
+                    : List.of();
+            modelMapper.map(successStoryData, successStoryModel);
 
             successStoryModel.getResults().clear();
-            if (successStoryData.getResults() != null && !successStoryData.getResults().isEmpty()) {
-                successStoryModel.getResults().addAll(successStoryData.getResults());
-            }
-            
+            successStoryModel.getResults().addAll(resultsToKeep);
+
             if ((Objects.isNull(mediaFile) || mediaFile.isEmpty()) && !removeMedia) {
                 successStoryModel.setMedia(mediaToKeep);
             }
