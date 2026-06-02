@@ -7,6 +7,7 @@ import com.btc_store.domain.data.custom.ProductFilterData;
 import com.btc_store.domain.enums.MediaCategory;
 import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.*;
+import com.btc_store.domain.model.custom.localize.Localized;
 import com.btc_store.domain.model.custom.user.UserModel;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.ProductFacade;
@@ -86,7 +87,10 @@ public class ProductFacadeImpl implements ProductFacade {
         productModel.setResponsibleUsers(responsibleUsers);
 
         if (CollectionUtils.isNotEmpty(productData.getFeatures())) {
-            productModel.setFeatures(productData.getFeatures());
+            List<com.btc_store.domain.model.custom.localize.Localized> featureModels = productData.getFeatures().stream()
+                    .map(f -> modelMapper.map(f, com.btc_store.domain.model.custom.localize.Localized.class))
+                    .collect(Collectors.toList());
+            productModel.setFeatures(featureModels);
         } else {
             productModel.setFeatures(new ArrayList<>());
         }

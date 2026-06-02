@@ -97,8 +97,15 @@ public class StoreProductModel extends CodeBasedItemModel {
 
     @ElementCollection
     @CollectionTable(name = "product_features", joinColumns = @JoinColumn(name = PRODUCT_RELATION))
-    @Column(name = "feature", length = 500)
-    private List<String> features = new ArrayList<>();
+    @AttributeOverrides({
+            @AttributeOverride(name = "tr", column = @Column(name = "feature_tr", length = 500)),
+            @AttributeOverride(name = "en", column = @Column(name = "feature_en", length = 500)),
+            @AttributeOverride(name = "de", column = @Column(name = "feature_de", length = 500)),
+            @AttributeOverride(name = "fr", column = @Column(name = "feature_fr", length = 500)),
+            @AttributeOverride(name = "es", column = @Column(name = "feature_es", length = 500)),
+            @AttributeOverride(name = "it", column = @Column(name = "feature_it", length = 500))
+    })
+    private List<Localized> features = new ArrayList<>();
 
     @Column(name = "video_link", length = 1000)
     private String videoLink;

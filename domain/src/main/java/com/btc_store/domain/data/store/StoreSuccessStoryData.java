@@ -20,7 +20,7 @@ public class StoreSuccessStoryData extends BaseData {
     private LocalizeData htmlContent;
     private MediaData media;
     private String videoUrl;
-    private List<String> results = new ArrayList<>();
+    private List<LocalizeData> results = new ArrayList<>();
     private Integer order;
     private Boolean active;
 }

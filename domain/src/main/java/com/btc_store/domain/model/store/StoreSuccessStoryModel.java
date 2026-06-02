@@ -67,8 +67,15 @@ public class StoreSuccessStoryModel extends StoreCodeBasedItemModel {
 
     @ElementCollection
     @CollectionTable(name = "success_story_results", joinColumns = @JoinColumn(name = "success_story_id"))
-    @Column(name = "result", length = 500)
-    private List<String> results = new ArrayList<>();
+    @AttributeOverrides({
+            @AttributeOverride(name = "tr", column = @Column(name = "result_tr", length = 500)),
+            @AttributeOverride(name = "en", column = @Column(name = "result_en", length = 500)),
+            @AttributeOverride(name = "de", column = @Column(name = "result_de", length = 500)),
+            @AttributeOverride(name = "fr", column = @Column(name = "result_fr", length = 500)),
+            @AttributeOverride(name = "es", column = @Column(name = "result_es", length = 500)),
+            @AttributeOverride(name = "it", column = @Column(name = "result_it", length = 500))
+    })
+    private List<Localized> results = new ArrayList<>();
 
     @Column(name = "display_order")
     private Integer order;

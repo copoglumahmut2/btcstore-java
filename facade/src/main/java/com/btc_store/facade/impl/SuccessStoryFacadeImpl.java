@@ -6,6 +6,7 @@ import com.btc_store.domain.enums.SearchOperator;
 import com.btc_store.domain.model.custom.MediaModel;
 import com.btc_store.domain.model.custom.SectorModel;
 import com.btc_store.domain.model.custom.SuccessStoryModel;
+import com.btc_store.domain.model.custom.localize.Localized;
 import com.btc_store.domain.model.store.extend.StoreSiteBasedItemModel;
 import com.btc_store.facade.SuccessStoryFacade;
 import com.btc_store.service.*;
@@ -74,8 +75,10 @@ public class SuccessStoryFacadeImpl implements SuccessStoryFacade {
             oldMedia = successStoryModel.getMedia();
 
             MediaModel mediaToKeep = successStoryModel.getMedia();
-            List<String> resultsToKeep = successStoryData.getResults() != null
-                    ? List.copyOf(successStoryData.getResults())
+            List<Localized> resultsToKeep = successStoryData.getResults() != null
+                    ? successStoryData.getResults().stream()
+                        .map(r -> modelMapper.map(r, Localized.class))
+                        .collect(java.util.stream.Collectors.toList())
                     : List.of();
             modelMapper.map(successStoryData, successStoryModel);
 
