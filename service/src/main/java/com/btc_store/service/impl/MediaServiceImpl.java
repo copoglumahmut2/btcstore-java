@@ -24,6 +24,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 import org.springframework.web.multipart.MultipartFile;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.FileNameMap;
@@ -31,7 +33,6 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
@@ -86,8 +87,10 @@ public class MediaServiceImpl implements MediaService {
             Files.createDirectories(Path.of(fullPath));
 
             var fileNameHash = RandomStringUtils.random(15, true, true);
-            var destFilePath = fullPath + File.separator + fileNameHash + DOT + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-            multipartFile.transferTo(new File(FilenameUtils.separatorsToSystem(destFilePath)));
+            var originalExt = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+            var destBase = fullPath + File.separator + fileNameHash;
+            var savedExt = saveFileAsWebpIfImage(multipartFile.getBytes(), originalExt, destBase);
+            var savedFile = new File(FilenameUtils.separatorsToSystem(destBase + DOT + savedExt));
 
             //create Media...
 
@@ -95,11 +98,11 @@ public class MediaServiceImpl implements MediaService {
             mediaModel.setSite(siteModel);
             mediaModel.setRealFileName(FilenameUtils.getName(multipartFile.getOriginalFilename()));
             mediaModel.setEncodedFileName(fileNameHash);
-            mediaModel.setExtension(FilenameUtils.getExtension(multipartFile.getOriginalFilename()));
+            mediaModel.setExtension(savedExt);
             mediaModel.setFilePath(filePath);
             mediaModel.setRootPath(rootPath);
-            mediaModel.setSize(multipartFile.getSize());
-            mediaModel.setMime(multipartFile.getContentType());
+            mediaModel.setSize(savedFile.length());
+            mediaModel.setMime("webp".equals(savedExt) ? "image/webp" : multipartFile.getContentType());
             mediaModel.setSecure(secure);
             mediaModel.setCode(UUID.randomUUID().toString());
             mediaModel.setCmsCategory(cmsCategoryModel);
@@ -134,8 +137,10 @@ public class MediaServiceImpl implements MediaService {
             Files.createDirectories(Path.of(fullPath));
 
             var fileNameHash = RandomStringUtils.random(15, true, true);
-            var destFilePath = fullPath + File.separator + fileNameHash + DOT + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-            multipartFile.transferTo(new File(FilenameUtils.separatorsToSystem(destFilePath)));
+            var originalExt = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+            var destBase = fullPath + File.separator + fileNameHash;
+            var savedExt = saveFileAsWebpIfImage(multipartFile.getBytes(), originalExt, destBase);
+            var savedFile = new File(FilenameUtils.separatorsToSystem(destBase + DOT + savedExt));
 
             //create Media...
 
@@ -144,11 +149,11 @@ public class MediaServiceImpl implements MediaService {
             mediaModel.setRealFileName(StringUtils.isNotEmpty(realFileName) ? realFileName
                     : FilenameUtils.getName(multipartFile.getOriginalFilename()));
             mediaModel.setEncodedFileName(fileNameHash);
-            mediaModel.setExtension(FilenameUtils.getExtension(multipartFile.getOriginalFilename()));
+            mediaModel.setExtension(savedExt);
             mediaModel.setFilePath(filePath);
             mediaModel.setRootPath(rootPath);
-            mediaModel.setSize(multipartFile.getSize());
-            mediaModel.setMime(multipartFile.getContentType());
+            mediaModel.setSize(savedFile.length());
+            mediaModel.setMime("webp".equals(savedExt) ? "image/webp" : multipartFile.getContentType());
             mediaModel.setSecure(secure);
             mediaModel.setCode(UUID.randomUUID().toString());
             mediaModel.setCmsCategory(cmsCategoryModel);
@@ -181,12 +186,13 @@ public class MediaServiceImpl implements MediaService {
             Files.createDirectories(Path.of(fullPath));
 
             var fileNameHash = RandomStringUtils.random(15, true, true);
-            var destFilePath = fullPath + File.separator + fileNameHash + DOT + FilenameUtils.getExtension(file.getName());
+            var originalExt = FilenameUtils.getExtension(file.getName());
+            var destBase = fullPath + File.separator + fileNameHash;
+            var savedExt = saveFileAsWebpIfImage(FileUtils.readFileToByteArray(file), originalExt, destBase);
+            var savedFile = new File(FilenameUtils.separatorsToSystem(destBase + DOT + savedExt));
 
             if (move) {
-                FileUtils.moveFile(file, new File(FilenameUtils.separatorsToSystem(destFilePath)), StandardCopyOption.REPLACE_EXISTING);
-            } else {
-                FileUtils.copyFile(file, new File(FilenameUtils.separatorsToSystem(destFilePath)), StandardCopyOption.REPLACE_EXISTING);
+                FileUtils.deleteQuietly(file);
             }
 
             //create Media...
@@ -195,11 +201,11 @@ public class MediaServiceImpl implements MediaService {
             mediaModel.setSite(siteModel);
             mediaModel.setRealFileName(FilenameUtils.getName(file.getName()));
             mediaModel.setEncodedFileName(fileNameHash);
-            mediaModel.setExtension(FilenameUtils.getExtension(file.getName()));
+            mediaModel.setExtension(savedExt);
             mediaModel.setFilePath(filePath);
             mediaModel.setRootPath(rootPath);
-            mediaModel.setSize(file.length());
-            mediaModel.setMime(MIMETYPES.getContentTypeFor(file.getName()));
+            mediaModel.setSize(savedFile.length());
+            mediaModel.setMime("webp".equals(savedExt) ? "image/webp" : MIMETYPES.getContentTypeFor(file.getName()));
             mediaModel.setSecure(secure);
             mediaModel.setCode(UUID.randomUUID().toString());
             mediaModel.setCmsCategory(cmsCategoryModel);
@@ -310,5 +316,63 @@ public class MediaServiceImpl implements MediaService {
             return StringUtils.join(mediaServePath, url);
         }
         return StringUtils.EMPTY;
+    }
+
+    // -------------------------------------------------------------------------
+    // WebP conversion helpers
+    // -------------------------------------------------------------------------
+
+    private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif");
+
+    /**
+     * Resim dosyası ise WebP'ye çevirip kaydeder, değilse olduğu gibi kopyalar.
+     * Dönen değer: diske yazılan dosyanın uzantısı ("webp" veya orijinal)
+     */
+    protected String saveFileAsWebpIfImage(byte[] bytes, String originalExtension, String destPathWithoutExtension) throws IOException {
+        var ext = originalExtension.toLowerCase();
+        if (IMAGE_EXTENSIONS.contains(ext)) {
+            return convertAndSaveAsWebp(bytes, destPathWithoutExtension);
+        }
+        // Resim değilse olduğu gibi kaydet
+        var destFile = new File(FilenameUtils.separatorsToSystem(destPathWithoutExtension + DOT + originalExtension));
+        FileUtils.writeByteArrayToFile(destFile, bytes);
+        return originalExtension;
+    }
+
+    private static final float WEBP_QUALITY = 0.85f; // 0.0 (en düşük) - 1.0 (lossless)
+
+    private String convertAndSaveAsWebp(byte[] bytes, String destPathWithoutExtension) throws IOException {
+        try (var inputStream = new java.io.ByteArrayInputStream(bytes)) {
+            var bufferedImage = ImageIO.read(inputStream);
+            if (bufferedImage == null) {
+                throw new IOException("Could not read image for WebP conversion");
+            }
+            var rgbImage = toRgbImage(bufferedImage);
+            var destFile = new File(FilenameUtils.separatorsToSystem(destPathWithoutExtension + ".webp"));
+            var writer = ImageIO.getImageWritersByMIMEType("image/webp").next();
+            var writeParam = writer.getDefaultWriteParam();
+            if (writeParam.canWriteCompressed()) {
+                writeParam.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                writeParam.setCompressionQuality(WEBP_QUALITY);
+            }
+            try (var output = ImageIO.createImageOutputStream(destFile)) {
+                writer.setOutput(output);
+                writer.write(null, new javax.imageio.IIOImage(rgbImage, null, null), writeParam);
+            } finally {
+                writer.dispose();
+            }
+            return "webp";
+        }
+    }
+
+    private BufferedImage toRgbImage(BufferedImage src) {
+        if (src.getType() == BufferedImage.TYPE_INT_RGB) {
+            return src;
+        }
+        var rgb = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_RGB);
+        var g2d = rgb.createGraphics();
+        g2d.drawImage(src, 0, 0, java.awt.Color.WHITE, null);
+        g2d.dispose();
+        return rgb;
     }
 }
