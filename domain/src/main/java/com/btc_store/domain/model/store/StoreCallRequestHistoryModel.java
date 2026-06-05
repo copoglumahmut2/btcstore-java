@@ -32,8 +32,11 @@ public class StoreCallRequestHistoryModel extends StoreCodeBasedItemModel {
     @Enumerated(EnumType.STRING)
     private CallRequestActionType actionType;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "message_key")
+    private String messageKey;
+
+    @Column(name = "message_params", columnDefinition = "TEXT")
+    private String messageParams;
 
     @Column(name = "performed_by_username")
     private String performedByUsername;

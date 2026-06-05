@@ -39,5 +39,5 @@ public interface CallRequestFacade {
     
     void closeCallRequest(Long callRequestId, String comment, String isoCode);
     
-    List<CallRequestHistoryData> getCallRequestHistory(Long callRequestId);
+    List<CallRequestHistoryData> getCallRequestHistory(Long callRequestId, String isoCode);
 }

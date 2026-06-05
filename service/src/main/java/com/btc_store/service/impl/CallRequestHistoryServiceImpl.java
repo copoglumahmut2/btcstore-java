@@ -29,7 +29,8 @@ public class CallRequestHistoryServiceImpl implements CallRequestHistoryService 
     public CallRequestHistoryModel createHistory(
             CallRequestModel callRequest,
             CallRequestActionType actionType,
-            String description,
+            String messageKey,
+            String messageParams,
             Long performedByUserId,
             String performedByUsername,
             CallRequestStatus oldStatus,
@@ -42,7 +43,8 @@ public class CallRequestHistoryServiceImpl implements CallRequestHistoryService 
         history.setSite(siteModel);
         history.setCallRequest(callRequest);
         history.setActionType(actionType);
-        history.setDescription(description);
+        history.setMessageKey(messageKey);
+        history.setMessageParams(messageParams);
         history.setPerformedByUsername(performedByUsername);
         history.setOldStatus(oldStatus);
         history.setNewStatus(newStatus);

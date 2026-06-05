@@ -100,7 +100,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 saved,
                 CallRequestActionType.CREATED,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_CREATED, isoCode),
+                MessageConstant.CALL_REQUEST_HISTORY_CREATED,
+                null,
                 null,
                 "System",
                 null,
@@ -122,7 +123,8 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     saved,
                     CallRequestActionType.ASSIGNED_TO_USER,
-                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USER_AUTO, isoCode, userNames),
+                    MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USER_AUTO,
+                    userNames,
                     null,
                     "System",
                     CallRequestStatus.PENDING,
@@ -131,7 +133,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                     siteModel
             );
             
-            publishProductContactEmail(saved, saved.getProduct());
+            publishProductContactEmail(saved, saved.getProduct(), isoCode);
             
             log.info("Call request {} ürün sorumlu kullanıcılarına atandı: {}", saved.getId(), userNames);
         }
@@ -144,7 +146,8 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     saved,
                     CallRequestActionType.ASSIGNED_TO_GROUP,
-                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUP_AUTO, isoCode, groupNames),
+                    MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUP_AUTO,
+                    groupNames,
                     null,
                     "System",
                     CallRequestStatus.PENDING,
@@ -153,7 +156,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                     siteModel
             );
 
-            publishCallRequestEvent(saved, "CREATED");
+            publishCallRequestEvent(saved, "CREATED", isoCode);
             
             log.info("Call request {} otomatik olarak gruplara atandı: {}", saved.getId(), groupNames);
         }
@@ -321,7 +324,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_GROUP,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUP, isoCode, groupCode, assignedBy),
+                MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUP,
+                groupCode + "|" + assignedBy,
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -330,7 +334,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP");
+        publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP", isoCode);
         
         log.info("Call request {} gruba atandı: {} (Atayan: {})", callRequestId, groupCode, assignedBy);
     }
@@ -369,7 +373,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_GROUP,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUPS, isoCode, String.join(", ", groupCodes), assignedBy),
+                MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUPS,
+                String.join(", ", groupCodes) + "|" + assignedBy,
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -379,7 +384,7 @@ public class CallRequestServiceImpl implements CallRequestService {
         );
         
         for (String groupCode : groupCodes) {
-            publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP");
+            publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP", isoCode);
         }
         
         log.info("Call request {} gruplara atandı: {} (Atayan: {})", callRequestId, String.join(", ", groupCodes), assignedBy);
@@ -416,7 +421,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_USER,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USER, isoCode, user.getUsername(), assignedBy),
+                MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USER,
+                user.getUsername() + "|" + assignedBy,
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -425,7 +431,7 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER");
+        publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER", isoCode);
         
         log.info("Call request {} kullanıcıya atandı: {} (Atayan: {})", callRequestId, userId, assignedBy);
     }
@@ -469,7 +475,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_USER,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USERS, isoCode, String.join(", ", usernames), assignedBy),
+                MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USERS,
+                String.join(", ", usernames) + "|" + assignedBy,
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -479,7 +486,7 @@ public class CallRequestServiceImpl implements CallRequestService {
         );
         
         for (UserModel user : assignedUsers) {
-            publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER");
+            publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER", isoCode);
         }
         
         log.info("Call request {} kullanıcılara atandı: {} (Atayan: {})", callRequestId, String.join(", ", usernames), assignedBy);
@@ -509,7 +516,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.STATUS_CHANGED,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_CLOSED, isoCode, closedBy),
+                MessageConstant.CALL_REQUEST_HISTORY_CLOSED,
+                closedBy,
                 closedByUserId,
                 closedBy,
                 oldStatus,
@@ -541,7 +549,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.STATUS_CHANGED,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_STATUS_CHANGED, isoCode, oldStatus, newStatus),
+                MessageConstant.CALL_REQUEST_HISTORY_STATUS_CHANGED,
+                oldStatus + "|" + newStatus,
                 null,
                 "System",
                 oldStatus,
@@ -552,7 +561,7 @@ public class CallRequestServiceImpl implements CallRequestService {
         
         // Publish event if completed
         if (newStatus == CallRequestStatus.COMPLETED) {
-            publishCallRequestEvent(callRequest, "COMPLETED");
+            publishCallRequestEvent(callRequest, "COMPLETED", isoCode);
         }
         
         log.info("Call request {} durumu güncellendi: {} -> {}", callRequestId, oldStatus, newStatus);
@@ -586,7 +595,8 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.PRIORITY_CHANGED,
-                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_PRIORITY_CHANGED, isoCode, oldPriority, newPriority, updatedBy),
+                MessageConstant.CALL_REQUEST_HISTORY_PRIORITY_CHANGED,
+                oldPriority + "|" + newPriority + "|" + updatedBy,
                 updatedByUserId,
                 updatedBy,
                 null,
@@ -599,10 +609,9 @@ public class CallRequestServiceImpl implements CallRequestService {
     }
     
     @Override
-    public void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType) {
+    public void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType, String isoCode) {
         try {
             var siteModel = siteService.getCurrentSite();
-            // Get user group emails from parameter
             String userGroupCodes = parameterService.getValueByCode("call.center.group", callRequestModel.getSite());
             
             List<String> userEmails = new ArrayList<>();
@@ -618,46 +627,40 @@ public class CallRequestServiceImpl implements CallRequestService {
                 }
             }
             
-            // Get email template from database
             String templateCode = "call_request_notification";
             var emailTemplate = emailTemplateService.getEmailTemplateByCode(templateCode, callRequestModel.getSite());
             
-            // Extract variables using generic template service
             Map<String, Object> variables = genericTemplateService.extractVariables(callRequestModel, "CallRequestModel");
             
-            // Add priority translation based on site locale
             String[] priorityInfo = getPriorityInfo(callRequestModel.getPriority(), callRequestModel.getSite());
             variables.put("priority", priorityInfo[0]);
             variables.put("priorityClass", priorityInfo[1]);
             
-            // Format created date if exists
             if (callRequestModel.getCreatedDate() != null) {
                 variables.put("createdDate", new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(callRequestModel.getCreatedDate()));
             } else {
                 variables.put("createdDate", "");
             }
             
-            // Process template with variables
             String processedSubject = genericTemplateService.processTemplate(emailTemplate.getSubject(), variables);
             String processedBody = genericTemplateService.processTemplate(emailTemplate.getBody(), variables);
             
-            // Create event DTO
             Map<String, Object> event = new HashMap<>();
             event.put("subject", processedSubject);
             event.put("body", processedBody);
-            event.put("recipients", userEmails); // Generic field name
+            event.put("recipients", userEmails);
             event.put("siteCode", callRequestModel.getSite().getCode());
-            event.put("source", "CallRequest"); // Hangi modülden geldiğini belirt
+            event.put("source", "CallRequest");
             event.put("sourceId", callRequestModel.getId());
             
-            // Send to RabbitMQ
             rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
             
-            // Create history for email sent
+            String emailList = String.join(", ", userEmails);
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT, null, String.join(", ", userEmails)),
+                    MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT,
+                    emailList,
                     null,
                     "System",
                     null,
@@ -672,10 +675,7 @@ public class CallRequestServiceImpl implements CallRequestService {
         }
     }
     
-    /**
-     * Send email notification to a specific user
-     */
-    private void publishCallRequestEventToUser(CallRequestModel callRequestModel, UserModel user, String eventType) {
+    private void publishCallRequestEventToUser(CallRequestModel callRequestModel, UserModel user, String eventType, String isoCode) {
         try {
             if (user.getEmail() == null || user.getEmail().isEmpty()) {
                 log.warn("User {} has no email address", user.getUsername());
@@ -741,7 +741,8 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_USER_ASSIGNED, null, user.getEmail()),
+                    MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_USER_ASSIGNED,
+                    user.getEmail(),
                     null,
                     "System",
                     null,
@@ -759,7 +760,7 @@ public class CallRequestServiceImpl implements CallRequestService {
     /**
      * Send email notification to all members of a group
      */
-    private void publishCallRequestEventToGroup(CallRequestModel callRequestModel, String groupCode, String eventType) {
+    private void publishCallRequestEventToGroup(CallRequestModel callRequestModel, String groupCode, String eventType, String isoCode) {
         try {
             var siteModel = siteService.getCurrentSite();
             
@@ -835,7 +836,8 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_GROUP_ASSIGNED, null, groupCode, String.join(", ", userEmails)),
+                    MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_GROUP_ASSIGNED,
+                    groupCode + "|" + String.join(", ", userEmails),
                     null,
                     "System",
                     null,
@@ -853,7 +855,7 @@ public class CallRequestServiceImpl implements CallRequestService {
     /**
      * Send email notification to product responsible users
      */
-    private void publishProductContactEmail(CallRequestModel callRequestModel, com.btc_store.domain.model.custom.ProductModel product) {
+    private void publishProductContactEmail(CallRequestModel callRequestModel, com.btc_store.domain.model.custom.ProductModel product, String isoCode) {
         try {
             // Get responsible users' emails
             List<String> userEmails = product.getResponsibleUsers().stream()
@@ -922,7 +924,8 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_PRODUCT_CONTACT, null, String.join(", ", userEmails)),
+                    MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_PRODUCT_CONTACT,
+                    String.join(", ", userEmails),
                     null,
                     "System",
                     null,

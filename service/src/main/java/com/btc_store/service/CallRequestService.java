@@ -42,5 +42,5 @@ public interface CallRequestService {
     
     void closeCallRequest(Long callRequestId, String comment, String isoCode);
     
-    void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType);
+    void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType, String isoCode);
 }

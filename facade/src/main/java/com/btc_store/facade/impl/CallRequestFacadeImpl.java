@@ -6,6 +6,7 @@ import com.btc_store.domain.data.custom.pageable.PageableData;
 import com.btc_store.domain.enums.CallRequestPriority;
 import com.btc_store.domain.enums.CallRequestStatus;
 import com.btc_store.domain.model.custom.CallRequestModel;
+import com.btc_store.domain.model.custom.CallRequestHistoryModel;
 import com.btc_store.domain.model.custom.LegalDocumentModel;
 import com.btc_store.domain.model.custom.ProductModel;
 import com.btc_store.facade.CallRequestFacade;
@@ -184,9 +185,26 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     }
     
     @Override
-    public List<CallRequestHistoryData> getCallRequestHistory(Long callRequestId) {
-        var historyModels = callRequestHistoryService.getHistoryByCallRequestId(callRequestId);
-        return List.of(modelMapper.map(historyModels, CallRequestHistoryData[].class));
+    public List<CallRequestHistoryData> getCallRequestHistory(Long callRequestId, String isoCode) {
+        return callRequestHistoryService.getHistoryByCallRequestId(callRequestId)
+                .stream()
+                .map(model -> toHistoryData(model, isoCode))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private CallRequestHistoryData toHistoryData(CallRequestHistoryModel model, String isoCode) {
+        var data = modelMapper.map(model, CallRequestHistoryData.class);
+        if (model.getMessageKey() != null && !model.getMessageKey().isBlank()) {
+            var params = hasText(model.getMessageParams())
+                    ? model.getMessageParams().split("\\|")
+                    : new String[0];
+            data.setDescription(util.Messages.getMessageForIsoCode(model.getMessageKey(), isoCode, (Object[]) params));
+        }
+        return data;
+    }
+
+    private boolean hasText(String s) {
+        return s != null && !s.isBlank();
     }
 
 }

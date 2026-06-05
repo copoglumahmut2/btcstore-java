@@ -13,7 +13,8 @@ public interface CallRequestHistoryService {
     CallRequestHistoryModel createHistory(
             CallRequestModel callRequest,
             CallRequestActionType actionType,
-            String description,
+            String messageKey,
+            String messageParams,
             Long performedByUserId,
             String performedByUsername,
             CallRequestStatus oldStatus,

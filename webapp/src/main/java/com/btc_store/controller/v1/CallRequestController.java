@@ -220,7 +220,7 @@ public class CallRequestController {
                                                      @Parameter(description = "IsoCode for validation message internalization")
                                                      @RequestParam(required = false) String isoCode) {
         log.info("Inside getCallRequestHistory of CallRequestController with id: {}", id);
-        var history = callRequestFacade.getCallRequestHistory(id);
+        var history = callRequestFacade.getCallRequestHistory(id, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(history);
