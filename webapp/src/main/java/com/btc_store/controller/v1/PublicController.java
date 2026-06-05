@@ -142,7 +142,7 @@ public class PublicController {
                                                  @Parameter(description = "IsoCode for validation message internalization")
                                                  @RequestParam(required = false) String isoCode) {
         log.info("Inside createCallRequest of PublicController.");
-        var savedCallRequest = callRequestFacade.createCallRequest(callRequestData);
+        var savedCallRequest = callRequestFacade.createCallRequest(callRequestData, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedCallRequest);
@@ -200,7 +200,7 @@ public class PublicController {
                                                            @Parameter(description = "IsoCode for validation message internalization")
                                                            @RequestParam(required = false) String isoCode) {
         log.info("Inside createProductContactRequest of PublicController for product: {}", code);
-        var savedCallRequest = callRequestFacade.createProductContactRequest(code, callRequestData);
+        var savedCallRequest = callRequestFacade.createProductContactRequest(code, callRequestData, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedCallRequest);

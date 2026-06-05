@@ -11,9 +11,9 @@ import java.util.List;
 
 public interface CallRequestFacade {
     
-    CallRequestData createCallRequest(CallRequestData callRequestData);
+    CallRequestData createCallRequest(CallRequestData callRequestData, String isoCode);
     
-    CallRequestData createProductContactRequest(String productCode, CallRequestData callRequestData);
+    CallRequestData createProductContactRequest(String productCode, CallRequestData callRequestData, String isoCode);
     
     CallRequestData updateCallRequest(CallRequestData callRequestData);
     
@@ -25,19 +25,19 @@ public interface CallRequestFacade {
 
     PageableData getMyCallRequestsPageable(Pageable pageable);
     
-    void assignToGroup(Long callRequestId, String groupCode);
+    void assignToGroup(Long callRequestId, String groupCode, String isoCode);
     
-    void assignToGroups(Long callRequestId, List<String> groupCodes);
+    void assignToGroups(Long callRequestId, List<String> groupCodes, String isoCode);
     
-    void assignToUser(Long callRequestId, Long userId);
+    void assignToUser(Long callRequestId, Long userId, String isoCode);
     
-    void assignToUsers(Long callRequestId, List<Long> userIds);
+    void assignToUsers(Long callRequestId, List<Long> userIds, String isoCode);
     
-    void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment);
+    void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment, String isoCode);
     
-    void updatePriority(Long callRequestId, CallRequestPriority newPriority);
+    void updatePriority(Long callRequestId, CallRequestPriority newPriority, String isoCode);
     
-    void closeCallRequest(Long callRequestId, String comment);
+    void closeCallRequest(Long callRequestId, String comment, String isoCode);
     
     List<CallRequestHistoryData> getCallRequestHistory(Long callRequestId);
 }

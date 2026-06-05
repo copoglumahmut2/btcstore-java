@@ -90,7 +90,7 @@ public class CallRequestController {
                                                  @Parameter(description = "IsoCode for validation message internalization")
                                                  @RequestParam(required = false) String isoCode) {
         log.info("Inside createCallRequest of CallRequestController.");
-        var savedCallRequest = callRequestFacade.createCallRequest(callRequestData);
+        var savedCallRequest = callRequestFacade.createCallRequest(callRequestData, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         responseData.setData(savedCallRequest);
@@ -122,7 +122,7 @@ public class CallRequestController {
                                             @Parameter(description = "IsoCode for validation message internalization")
                                             @RequestParam(required = false) String isoCode) {
         log.info("Inside assignToGroup of CallRequestController with id: {} and groupCode: {}", id, groupCode);
-        callRequestFacade.assignToGroup(id, groupCode);
+        callRequestFacade.assignToGroup(id, groupCode, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
@@ -136,7 +136,7 @@ public class CallRequestController {
                                              @Parameter(description = "IsoCode for validation message internalization")
                                              @RequestParam(required = false) String isoCode) {
         log.info("Inside assignToGroups of CallRequestController with id: {} and groupCodes: {}", id, groupCodes);
-        callRequestFacade.assignToGroups(id, groupCodes);
+        callRequestFacade.assignToGroups(id, groupCodes, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
@@ -150,7 +150,7 @@ public class CallRequestController {
                                            @Parameter(description = "IsoCode for validation message internalization")
                                            @RequestParam(required = false) String isoCode) {
         log.info("Inside assignToUser of CallRequestController with id: {} and userId: {}", id, userId);
-        callRequestFacade.assignToUser(id, userId);
+        callRequestFacade.assignToUser(id, userId, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
@@ -164,7 +164,7 @@ public class CallRequestController {
                                             @Parameter(description = "IsoCode for validation message internalization")
                                             @RequestParam(required = false) String isoCode) {
         log.info("Inside assignToUsers of CallRequestController with id: {} and userIds: {}", id, userIds);
-        callRequestFacade.assignToUsers(id, userIds);
+        callRequestFacade.assignToUsers(id, userIds, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
@@ -178,7 +178,7 @@ public class CallRequestController {
                                                @Parameter(description = "IsoCode for validation message internalization")
                                                @RequestParam(required = false) String isoCode) {
         log.info("Inside closeCallRequest of CallRequestController with id: {}", id);
-        callRequestFacade.closeCallRequest(id, comment);
+        callRequestFacade.closeCallRequest(id, comment, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
@@ -193,7 +193,7 @@ public class CallRequestController {
                                            @Parameter(description = "IsoCode for validation message internalization")
                                            @RequestParam(required = false) String isoCode) {
         log.info("Inside updateStatus of CallRequestController with id: {} and status: {}", id, status);
-        callRequestFacade.updateStatus(id, status, comment);
+        callRequestFacade.updateStatus(id, status, comment, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;
@@ -207,7 +207,7 @@ public class CallRequestController {
                                              @Parameter(description = "IsoCode for validation message internalization")
                                              @RequestParam(required = false) String isoCode) {
         log.info("Inside updatePriority of CallRequestController with id: {} and priority: {}", id, priority);
-        callRequestFacade.updatePriority(id, priority);
+        callRequestFacade.updatePriority(id, priority, isoCode);
         var responseData = new ServiceResponseData();
         responseData.setStatus(ProcessStatus.SUCCESS);
         return responseData;

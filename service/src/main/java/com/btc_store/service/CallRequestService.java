@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface CallRequestService {
     
-    CallRequestModel createCallRequest(CallRequestModel callRequestModel);
+    CallRequestModel createCallRequest(CallRequestModel callRequestModel, String isoCode);
     
     CallRequestModel updateCallRequest(CallRequestModel callRequestModel);
     
@@ -28,19 +28,19 @@ public interface CallRequestService {
     
     Page<CallRequestModel> getMyCallRequestsPageable(org.springframework.data.domain.Pageable pageable);
     
-    void assignToGroup(Long callRequestId, String groupCode);
+    void assignToGroup(Long callRequestId, String groupCode, String isoCode);
     
-    void assignToGroups(Long callRequestId, List<String> groupCodes);
+    void assignToGroups(Long callRequestId, List<String> groupCodes, String isoCode);
     
-    void assignToUser(Long callRequestId, Long userId);
+    void assignToUser(Long callRequestId, Long userId, String isoCode);
     
-    void assignToUsers(Long callRequestId, List<Long> userIds);
+    void assignToUsers(Long callRequestId, List<Long> userIds, String isoCode);
     
-    void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment);
+    void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment, String isoCode);
     
-    void updatePriority(Long callRequestId, CallRequestPriority newPriority);
+    void updatePriority(Long callRequestId, CallRequestPriority newPriority, String isoCode);
     
-    void closeCallRequest(Long callRequestId, String comment);
+    void closeCallRequest(Long callRequestId, String comment, String isoCode);
     
     void publishCallRequestEvent(CallRequestModel callRequestModel, String eventType);
 }

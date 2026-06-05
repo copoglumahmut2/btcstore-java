@@ -12,6 +12,7 @@ import com.btc_store.service.*;
 import com.btc_store.service.user.UserGroupService;
 import com.btc_store.service.user.UserService;
 import com.btc_store.service.util.ServiceUtils;
+import constant.MessageConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import util.Messages;
 
 import java.util.*;
 
@@ -91,14 +93,14 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public CallRequestModel createCallRequest(CallRequestModel callRequestModel) {
+    public CallRequestModel createCallRequest(CallRequestModel callRequestModel, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel saved = modelService.save(callRequestModel);
 
         callRequestHistoryService.createHistory(
                 saved,
                 CallRequestActionType.CREATED,
-                "Call request oluşturuldu",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_CREATED, isoCode),
                 null,
                 "System",
                 null,
@@ -120,7 +122,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     saved,
                     CallRequestActionType.ASSIGNED_TO_USER,
-                    "Otomatik olarak kullanıcılara atandı: " + userNames,
+                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USER_AUTO, isoCode, userNames),
                     null,
                     "System",
                     CallRequestStatus.PENDING,
@@ -142,7 +144,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     saved,
                     CallRequestActionType.ASSIGNED_TO_GROUP,
-                    "Otomatik olarak gruplara atandı: " + groupNames,
+                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUP_AUTO, isoCode, groupNames),
                     null,
                     "System",
                     CallRequestStatus.PENDING,
@@ -290,18 +292,16 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void assignToGroup(Long callRequestId, String groupCode) {
+    public void assignToGroup(Long callRequestId, String groupCode, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         
-        // Check if request is closed
         if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
-            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+            throw new IllegalStateException(Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_CLOSED_OPERATION_NOT_ALLOWED, isoCode));
         }
         
         CallRequestStatus oldStatus = callRequest.getStatus();
         
-        // Get current user who is making the assignment
         String assignedBy = "System";
         Long assignedByUserId = null;
         try {
@@ -318,11 +318,10 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequest.setStatus(CallRequestStatus.ASSIGNED);
         modelService.save(callRequest);
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_GROUP,
-                "Gruba atandı: " + groupCode + " (Atayan: " + assignedBy + ")",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUP, isoCode, groupCode, assignedBy),
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -331,7 +330,6 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        // Send email notification to group members
         publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP");
         
         log.info("Call request {} gruba atandı: {} (Atayan: {})", callRequestId, groupCode, assignedBy);
@@ -339,18 +337,16 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void assignToGroups(Long callRequestId, List<String> groupCodes) {
+    public void assignToGroups(Long callRequestId, List<String> groupCodes, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         
-        // Check if request is closed
         if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
-            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+            throw new IllegalStateException(Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_CLOSED_OPERATION_NOT_ALLOWED, isoCode));
         }
         
         CallRequestStatus oldStatus = callRequest.getStatus();
         
-        // Get current user who is making the assignment
         String assignedBy = "System";
         Long assignedByUserId = null;
         try {
@@ -361,9 +357,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             log.warn("Could not get current user: {}", e.getMessage());
         }
         
-        // Clear existing groups and add new ones
         callRequest.getAssignedGroups().clear();
-        
         for (String groupCode : groupCodes) {
             var userGroup = userGroupService.getUserGroupModel(groupCode, siteModel);
             callRequest.getAssignedGroups().add(userGroup);
@@ -372,11 +366,10 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequest.setStatus(CallRequestStatus.ASSIGNED);
         modelService.save(callRequest);
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_GROUP,
-                "Gruplara atandı: " + String.join(", ", groupCodes) + " (Atayan: " + assignedBy + ")",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_GROUPS, isoCode, String.join(", ", groupCodes), assignedBy),
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -385,7 +378,6 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        // Send email notification to all group members
         for (String groupCode : groupCodes) {
             publishCallRequestEventToGroup(callRequest, groupCode, "ASSIGNED_TO_GROUP");
         }
@@ -395,19 +387,17 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void assignToUser(Long callRequestId, Long userId) {
+    public void assignToUser(Long callRequestId, Long userId, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         
-        // Check if request is closed
         if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
-            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+            throw new IllegalStateException(Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_CLOSED_OPERATION_NOT_ALLOWED, isoCode));
         }
         
         UserModel user = userService.getUserModelById(userId);
         CallRequestStatus oldStatus = callRequest.getStatus();
         
-        // Get current user who is making the assignment
         String assignedBy = "System";
         Long assignedByUserId = null;
         try {
@@ -423,11 +413,10 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequest.setStatus(CallRequestStatus.IN_PROGRESS);
         modelService.save(callRequest);
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_USER,
-                "Kullanıcıya atandı: " + user.getUsername() + " (Atayan: " + assignedBy + ")",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USER, isoCode, user.getUsername(), assignedBy),
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -436,7 +425,6 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        // Send email notification to assigned user
         publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER");
         
         log.info("Call request {} kullanıcıya atandı: {} (Atayan: {})", callRequestId, userId, assignedBy);
@@ -444,18 +432,16 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void assignToUsers(Long callRequestId, List<Long> userIds) {
+    public void assignToUsers(Long callRequestId, List<Long> userIds, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         
-        // Check if request is closed
         if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
-            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+            throw new IllegalStateException(Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_CLOSED_OPERATION_NOT_ALLOWED, isoCode));
         }
         
         CallRequestStatus oldStatus = callRequest.getStatus();
         
-        // Get current user who is making the assignment
         String assignedBy = "System";
         Long assignedByUserId = null;
         try {
@@ -480,11 +466,10 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequest.setStatus(CallRequestStatus.IN_PROGRESS);
         modelService.save(callRequest);
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.ASSIGNED_TO_USER,
-                "Kullanıcılara atandı: " + String.join(", ", usernames) + " (Atayan: " + assignedBy + ")",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_ASSIGNED_TO_USERS, isoCode, String.join(", ", usernames), assignedBy),
                 assignedByUserId,
                 assignedBy,
                 oldStatus,
@@ -493,7 +478,6 @@ public class CallRequestServiceImpl implements CallRequestService {
                 siteModel
         );
         
-        // Send email notification to all assigned users
         for (UserModel user : assignedUsers) {
             publishCallRequestEventToUser(callRequest, user, "ASSIGNED_TO_USER");
         }
@@ -503,7 +487,7 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void closeCallRequest(Long callRequestId, String comment) {
+    public void closeCallRequest(Long callRequestId, String comment, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         CallRequestStatus oldStatus = callRequest.getStatus();
@@ -512,7 +496,6 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequest.setCompletedAt(new Date());
         callRequestDao.save(callRequest);
         
-        // Get current user
         String closedBy = "System";
         Long closedByUserId = null;
         try {
@@ -523,11 +506,10 @@ public class CallRequestServiceImpl implements CallRequestService {
             log.warn("Could not get current user: {}", e.getMessage());
         }
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.STATUS_CHANGED,
-                "Çağrı kapatıldı - " + closedBy + " tarafından",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_CLOSED, isoCode, closedBy),
                 closedByUserId,
                 closedBy,
                 oldStatus,
@@ -541,14 +523,13 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment) {
+    public void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         CallRequestStatus oldStatus = callRequest.getStatus();
         
-        // Check if request is closed (except when trying to reopen)
         if (CallRequestStatus.CLOSED.equals(oldStatus) && !CallRequestStatus.CLOSED.equals(newStatus)) {
-            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+            throw new IllegalStateException(Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_CLOSED_OPERATION_NOT_ALLOWED, isoCode));
         }
         
         callRequest.setStatus(newStatus);
@@ -557,11 +538,10 @@ public class CallRequestServiceImpl implements CallRequestService {
         }
         callRequestDao.save(callRequest);
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.STATUS_CHANGED,
-                "Durum değişti: " + oldStatus + " -> " + newStatus,
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_STATUS_CHANGED, isoCode, oldStatus, newStatus),
                 null,
                 "System",
                 oldStatus,
@@ -580,18 +560,16 @@ public class CallRequestServiceImpl implements CallRequestService {
     
     @Override
     @Transactional
-    public void updatePriority(Long callRequestId, CallRequestPriority newPriority) {
+    public void updatePriority(Long callRequestId, CallRequestPriority newPriority, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         CallRequestModel callRequest = getCallRequestById(callRequestId);
         
-        // Check if request is closed
         if (CallRequestStatus.CLOSED.equals(callRequest.getStatus())) {
-            throw new IllegalStateException("Kapalı çağrılarda işlem yapılamaz");
+            throw new IllegalStateException(Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_CLOSED_OPERATION_NOT_ALLOWED, isoCode));
         }
         
         CallRequestPriority oldPriority = callRequest.getPriority();
         
-        // Get current user
         String updatedBy = "System";
         Long updatedByUserId = null;
         try {
@@ -605,11 +583,10 @@ public class CallRequestServiceImpl implements CallRequestService {
         callRequest.setPriority(newPriority);
         modelService.save(callRequest);
         
-        // Create history
         callRequestHistoryService.createHistory(
                 callRequest,
                 CallRequestActionType.PRIORITY_CHANGED,
-                "Öncelik değişti: " + oldPriority + " -> " + newPriority + " (Güncelleyen: " + updatedBy + ")",
+                Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_PRIORITY_CHANGED, isoCode, oldPriority, newPriority, updatedBy),
                 updatedByUserId,
                 updatedBy,
                 null,
@@ -680,7 +657,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Email gönderildi: " + String.join(", ", userEmails),
+                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT, null, String.join(", ", userEmails)),
                     null,
                     "System",
                     null,
@@ -764,7 +741,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Kullanıcıya atama maili gönderildi: " + user.getEmail(),
+                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_USER_ASSIGNED, null, user.getEmail()),
                     null,
                     "System",
                     null,
@@ -858,7 +835,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Gruba atama maili gönderildi (" + groupCode + " grubu): " + String.join(", ", userEmails),
+                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_GROUP_ASSIGNED, null, groupCode, String.join(", ", userEmails)),
                     null,
                     "System",
                     null,
@@ -945,7 +922,7 @@ public class CallRequestServiceImpl implements CallRequestService {
             callRequestHistoryService.createHistory(
                     callRequestModel,
                     CallRequestActionType.EMAIL_SENT,
-                    "Ürün sorumlu kullanıcılarına mail gönderildi: " + String.join(", ", userEmails),
+                    Messages.getMessageForIsoCode(MessageConstant.CALL_REQUEST_HISTORY_EMAIL_SENT_PRODUCT_CONTACT, null, String.join(", ", userEmails)),
                     null,
                     "System",
                     null,

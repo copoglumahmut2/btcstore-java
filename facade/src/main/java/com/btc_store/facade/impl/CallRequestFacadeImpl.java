@@ -38,7 +38,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     protected final PageableProvider pageableProvider;
     
     @Override
-    public CallRequestData createCallRequest(CallRequestData callRequestData) {
+    public CallRequestData createCallRequest(CallRequestData callRequestData, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         
         CallRequestModel callRequestModel = modelMapper.map(callRequestData, CallRequestModel.class);
@@ -60,12 +60,12 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
             }
         }
         
-        var savedModel = callRequestService.createCallRequest(callRequestModel);
+        var savedModel = callRequestService.createCallRequest(callRequestModel, isoCode);
         return modelMapper.map(savedModel, CallRequestData.class);
     }
     
     @Override
-    public CallRequestData createProductContactRequest(String productCode, CallRequestData callRequestData) {
+    public CallRequestData createProductContactRequest(String productCode, CallRequestData callRequestData, String isoCode) {
         var siteModel = siteService.getCurrentSite();
         
         CallRequestModel callRequestModel = modelMapper.map(callRequestData, CallRequestModel.class);
@@ -80,8 +80,6 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
                 siteModel
             );
             callRequestModel.setProduct(product);
-
-            
             log.info("Creating call request for product: {} ({})", product.getCode(), product.getName());
         } catch (Exception e) {
             log.error("Could not find product with code: {}", productCode, e);
@@ -109,8 +107,7 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
             log.info("Product contact request assigned to {} responsible users", product.getResponsibleUsers().size());
         }
 
-        var savedModel = callRequestService.createCallRequest(callRequestModel);
-
+        var savedModel = callRequestService.createCallRequest(callRequestModel, isoCode);
         return modelMapper.map(savedModel, CallRequestData.class);
     }
     
@@ -152,38 +149,38 @@ public class CallRequestFacadeImpl implements CallRequestFacade {
     }
     
     @Override
-    public void assignToGroup(Long callRequestId, String groupCode) {
-        callRequestService.assignToGroup(callRequestId, groupCode);
+    public void assignToGroup(Long callRequestId, String groupCode, String isoCode) {
+        callRequestService.assignToGroup(callRequestId, groupCode, isoCode);
     }
     
     @Override
-    public void assignToGroups(Long callRequestId, List<String> groupCodes) {
-        callRequestService.assignToGroups(callRequestId, groupCodes);
+    public void assignToGroups(Long callRequestId, List<String> groupCodes, String isoCode) {
+        callRequestService.assignToGroups(callRequestId, groupCodes, isoCode);
     }
     
     @Override
-    public void assignToUser(Long callRequestId, Long userId) {
-        callRequestService.assignToUser(callRequestId, userId);
+    public void assignToUser(Long callRequestId, Long userId, String isoCode) {
+        callRequestService.assignToUser(callRequestId, userId, isoCode);
     }
     
     @Override
-    public void assignToUsers(Long callRequestId, List<Long> userIds) {
-        callRequestService.assignToUsers(callRequestId, userIds);
+    public void assignToUsers(Long callRequestId, List<Long> userIds, String isoCode) {
+        callRequestService.assignToUsers(callRequestId, userIds, isoCode);
     }
     
     @Override
-    public void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment) {
-        callRequestService.updateStatus(callRequestId, newStatus, comment);
+    public void updateStatus(Long callRequestId, CallRequestStatus newStatus, String comment, String isoCode) {
+        callRequestService.updateStatus(callRequestId, newStatus, comment, isoCode);
     }
     
     @Override
-    public void updatePriority(Long callRequestId, CallRequestPriority newPriority) {
-        callRequestService.updatePriority(callRequestId, newPriority);
+    public void updatePriority(Long callRequestId, CallRequestPriority newPriority, String isoCode) {
+        callRequestService.updatePriority(callRequestId, newPriority, isoCode);
     }
     
     @Override
-    public void closeCallRequest(Long callRequestId, String comment) {
-        callRequestService.closeCallRequest(callRequestId, comment);
+    public void closeCallRequest(Long callRequestId, String comment, String isoCode) {
+        callRequestService.closeCallRequest(callRequestId, comment, isoCode);
     }
     
     @Override
