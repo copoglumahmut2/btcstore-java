@@ -353,6 +353,11 @@ public class MediaServiceImpl implements MediaService {
             var writeParam = writer.getDefaultWriteParam();
             if (writeParam.canWriteCompressed()) {
                 writeParam.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                // compression type must be set before quality when types are available
+                String[] compressionTypes = writeParam.getCompressionTypes();
+                if (compressionTypes != null && compressionTypes.length > 0) {
+                    writeParam.setCompressionType(compressionTypes[0]);
+                }
                 writeParam.setCompressionQuality(WEBP_QUALITY);
             }
             try (var output = ImageIO.createImageOutputStream(destFile)) {
